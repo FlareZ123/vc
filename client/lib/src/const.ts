@@ -89,8 +89,6 @@ export const ServerSettingKey = {
     serverMonitorAudioGain: "serverMonitorAudioGain",
     asioInputChannel: "asioInputChannel",
     asioOutputChannel: "asioOutputChannel",
-    sfxEnabled: "sfxEnabled",
-    sfxDir: "sfxDir",
 
     tran: "tran",
     formantShift: "formantShift",
@@ -140,9 +138,6 @@ export type VoiceChangerServerSetting = {
     serverMonitorAudioGain: number;
     asioInputChannel: number;
     asioOutputChannel: number;
-    sfxEnabled: number;
-    sfxDir: string;
-    sfxFiles: string[];
 
     tran: number;
     formantShift: number;
@@ -267,9 +262,6 @@ export const DefaultServerSetting: ServerInfo = {
     serverMonitorAudioGain: 1.0,
     asioInputChannel: -1,
     asioOutputChannel: -1,
-    sfxEnabled: 0,
-    sfxDir: "",
-    sfxFiles: [],
 
     // VC Specific
     srcId: 0,
