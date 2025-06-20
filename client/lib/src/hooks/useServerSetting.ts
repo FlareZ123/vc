@@ -50,6 +50,7 @@ export type ServerSettingState = {
     serverSetting: ServerInfo;
     updateServerSettings: (setting: ServerInfo) => Promise<void>;
     reloadServerInfo: () => Promise<any>;
+    reloadSfx: () => Promise<void>;
 
     uploadModel: (setting: ModelUploadSetting) => Promise<void>;
     uploadProgress: number;
@@ -180,6 +181,16 @@ export const useServerSetting = (props: UseServerSettingProps): ServerSettingSta
         return serverInfo;
     };
 
+    const reloadSfx = useMemo(() => {
+        return async () => {
+            if (!props.voiceChangerClient) return;
+            await props.voiceChangerClient.updateServerSettings(
+                ServerSettingKey.sfxReload as unknown as ServerSettingKey,
+                "" + Date.now()
+            );
+        };
+    }, [props.voiceChangerClient]);
+
     const updateModelDefault = async () => {
         const serverInfo = await props.voiceChangerClient!.updateModelDefault();
         setServerSetting(serverInfo);
@@ -195,6 +206,7 @@ export const useServerSetting = (props: UseServerSettingProps): ServerSettingSta
         serverSetting,
         updateServerSettings,
         reloadServerInfo,
+        reloadSfx,
 
         uploadModel,
         uploadProgress,

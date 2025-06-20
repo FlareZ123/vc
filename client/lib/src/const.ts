@@ -71,6 +71,8 @@ export const ServerSettingKey = {
     f0Factor: "f0Factor",
     f0Detector: "f0Detector",
     recordIO: "recordIO",
+    sfxEnabled: "sfxEnabled",
+    sfxReload: "sfxReload",
 
     enableServerAudio: "enableServerAudio",
     serverAudioStated: "serverAudioStated",
@@ -120,6 +122,7 @@ export type VoiceChangerServerSetting = {
     f0Factor: number;
     f0Detector: F0Detector; // dio or harvest
     recordIO: number; // 0:off, 1:on
+    sfxEnabled: number; // 0:off, 1:on
 
     enableServerAudio: number; // 0:off, 1:on
     serverAudioStated: number; // 0:off, 1:on
@@ -138,6 +141,7 @@ export type VoiceChangerServerSetting = {
     serverMonitorAudioGain: number;
     asioInputChannel: number;
     asioOutputChannel: number;
+    sfxReload: number;
 
     tran: number;
     formantShift: number;
@@ -244,6 +248,7 @@ export const DefaultServerSetting: ServerInfo = {
     crossFadeOverlapSize: 0.10,
 
     recordIO: 0,
+    sfxEnabled: 0,
 
     enableServerAudio: 0,
     serverAudioStated: 0,
@@ -262,6 +267,7 @@ export const DefaultServerSetting: ServerInfo = {
     serverMonitorAudioGain: 1.0,
     asioInputChannel: -1,
     asioOutputChannel: -1,
+    sfxReload: 0,
 
     // VC Specific
     srcId: 0,

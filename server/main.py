@@ -99,6 +99,7 @@ async def main(args):
     os.makedirs(settings.model_dir, exist_ok=True)
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     os.makedirs(TMP_DIR, exist_ok=True)
+    os.makedirs(settings.sfx_dir, exist_ok=True)
 
     # HTTPS key/cert作成
     if args.https and args.https_self_signed:

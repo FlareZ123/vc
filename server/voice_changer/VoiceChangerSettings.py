@@ -4,7 +4,7 @@ from typing import NamedTuple
 import logging
 logger = logging.getLogger(__name__)
 
-IGNORED_KEYS = { 'version' }
+IGNORED_KEYS = { 'version', 'sfxReload' }
 STATEFUL_KEYS = [ 'serverAudioStated', 'passThrough', 'recordIO' ]
 
 def _js_bool_to_bool(value: str) -> bool:
@@ -396,3 +396,22 @@ class VoiceChangerSettings:
     @silenceFront.setter
     def silenceFront(self, enable: str):
         self._silenceFront = int(enable)
+
+    _sfxEnabled: int = 0
+    _sfxDir: str = "sfx"
+
+    @property
+    def sfxEnabled(self):
+        return self._sfxEnabled
+
+    @sfxEnabled.setter
+    def sfxEnabled(self, enable: str):
+        self._sfxEnabled = int(enable)
+
+    @property
+    def sfxDir(self):
+        return self._sfxDir
+
+    @sfxDir.setter
+    def sfxDir(self, path: str):
+        self._sfxDir = str(path)

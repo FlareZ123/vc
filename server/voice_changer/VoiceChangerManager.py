@@ -11,6 +11,7 @@ from voice_changer.RVC.RVCModelMerger import RVCModelMerger
 from const import STORED_SETTING_FILE, UPLOAD_DIR
 from voice_changer.VoiceChangerSettings import VoiceChangerSettings
 from voice_changer.VoiceChangerV2 import VoiceChangerV2
+from voice_changer.SFXPlayer import SFXPlayer
 from voice_changer.utils.LoadModelParams import LoadModelParamFile, LoadModelParams
 from voice_changer.utils.ModelMerger import MergeElement, ModelMergerRequest
 from voice_changer.utils.VoiceChangerModel import AudioInOutFloat
@@ -58,12 +59,14 @@ class VoiceChangerManager(ServerAudioCallbacks):
             self.settings.set_properties(settings)
         except:
             pass
+        self.settings.sfxDir = self.params.sfx_dir
 
         self.device_manager = DeviceManager.get_instance()
         self.devices = self.device_manager.list_devices()
         self.device_manager.initialize(self.settings.gpu, self.settings.forceFp32, self.settings.disableJit)
 
         self.vc = VoiceChangerV2(self.settings)
+        self.sfx_player = SFXPlayer(self.settings)
         self.server_audio = ServerAudio(self, self.settings)
 
         logger.info("Initialized.")
@@ -161,6 +164,9 @@ class VoiceChangerManager(ServerAudioCallbacks):
 
     def update_settings(self, key: str, val: Any):
         logger.info(f"update configuration {key}: {val}")
+        if key == 'sfxReload':
+            self.sfx_player.reload()
+            return self.get_info()
         error, old_value = self.settings.set_property(key, val)
         if error:
             return self.get_info()
@@ -194,6 +200,8 @@ class VoiceChangerManager(ServerAudioCallbacks):
         elif key == 'serverAudioSampleRate':
             self.update_settings('inputSampleRate', self.settings.serverAudioSampleRate)
             self.update_settings('outputSampleRate', self.settings.serverAudioSampleRate)
+        elif key in {'sfxDir', 'outputSampleRate'}:
+            self.sfx_player.reload()
 
         self.server_audio.update_settings(key, val, old_value)
         self.vc.update_settings(key, val, old_value)
@@ -210,6 +218,7 @@ class VoiceChangerManager(ServerAudioCallbacks):
         try:
             with self.device_manager.lock:
                 audio, vol, perf = self.vc.on_request(receivedData)
+            audio = self.sfx_player.mix(audio)
             return audio, vol, perf, None
         except VoiceChangerIsNotSelectedException as e:
             logger.exception(e)
