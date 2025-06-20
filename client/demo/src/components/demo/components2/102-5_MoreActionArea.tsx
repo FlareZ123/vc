@@ -19,6 +19,9 @@ export const MoreActionArea = (_props: MoreActionAreaProps) => {
         const onOpenGetClientInformationClicked = () => {
             stateControls.showGetClientInformationCheckbox.updateState(true);
         };
+        const onOpenSfxSettingClicked = () => {
+            stateControls.showSfxDialogCheckbox.updateState(true);
+        };
         return (
             <>
                 <div className="config-sub-area-control left-padding-1">
@@ -36,6 +39,9 @@ export const MoreActionArea = (_props: MoreActionAreaProps) => {
                             </div>
                             <div onClick={onOpenGetClientInformationClicked} className="config-sub-area-button">
                                 Client Info
+                            </div>
+                            <div onClick={onOpenSfxSettingClicked} className="config-sub-area-button">
+                                SFX Setting
                             </div>
                         </div>
                     </div>
