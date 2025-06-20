@@ -3,6 +3,8 @@ import os
 import sys
 import shutil
 import numpy as np
+from scipy.io import wavfile
+import librosa
 from downloader.SampleDownloader import downloadSample, getSampleInfos
 import logging
 from voice_changer.Local.ServerAudio import ServerAudio, ServerAudioCallbacks
@@ -66,6 +68,12 @@ class VoiceChangerManager(ServerAudioCallbacks):
         self.vc = VoiceChangerV2(self.settings)
         self.server_audio = ServerAudio(self, self.settings)
 
+        # Background SFX data
+        self.sfx_data: list[np.ndarray] = []
+        self.sfx_idx: list[int] = []
+        self.sfx_files: list[str] = []
+        self._load_sfx(self.settings.sfxDir)
+
         logger.info("Initialized.")
 
         # Initialize the voice changer
@@ -74,6 +82,56 @@ class VoiceChangerManager(ServerAudioCallbacks):
     def store_setting(self):
         with open(STORED_SETTING_FILE, "w") as f:
             json.dump(self.settings.to_dict_stateless(), f)
+
+    def _load_sfx(self, directory: str):
+        """Load all WAV files from directory as looping SFX."""
+        self.sfx_data = []
+        self.sfx_idx = []
+        self.sfx_files = []
+        if not directory:
+            return
+        if not os.path.isdir(directory):
+            logger.warning(f"SFX directory not found: {directory}")
+            return
+        for fname in sorted(os.listdir(directory)):
+            if not fname.lower().endswith(".wav"):
+                continue
+            path = os.path.join(directory, fname)
+            try:
+                sr, data = wavfile.read(path)
+                if data.dtype != np.float32:
+                    data = data.astype(np.float32) / np.iinfo(data.dtype).max
+                if data.ndim > 1:
+                    data = np.mean(data, axis=1)
+                if sr != self.settings.outputSampleRate:
+                    data = librosa.resample(data, orig_sr=sr, target_sr=self.settings.outputSampleRate)
+                self.sfx_data.append(data)
+                self.sfx_idx.append(0)
+                self.sfx_files.append(fname)
+            except Exception as e:
+                logger.warning(f"Failed to load SFX file {path}: {e}")
+
+    def _apply_sfx(self, audio: np.ndarray) -> np.ndarray:
+        """Mix loaded SFX into audio if enabled."""
+        if not self.settings.sfxEnabled or len(self.sfx_data) == 0:
+            return audio
+        out = audio.copy()
+        for i, data in enumerate(self.sfx_data):
+            idx = self.sfx_idx[i]
+            remain = len(audio)
+            mix = []
+            while remain > 0:
+                chunk = min(remain, len(data) - idx)
+                mix.append(data[idx: idx + chunk])
+                remain -= chunk
+                idx += chunk
+                if idx >= len(data):
+                    idx = 0
+            overlay = np.concatenate(mix)
+            out[: len(overlay)] += overlay[: len(out)]
+            self.sfx_idx[i] = idx
+        out = np.clip(out, -1.0, 1.0)
+        return out
 
     @classmethod
     def get_instance(cls):
@@ -129,6 +187,7 @@ class VoiceChangerManager(ServerAudioCallbacks):
         data["voiceChangerParams"] = self.params
 
         data["status"] = "OK"
+        data["sfxFiles"] = self.sfx_files
 
         info = self.server_audio.get_info()
         data.update(info)
@@ -194,6 +253,8 @@ class VoiceChangerManager(ServerAudioCallbacks):
         elif key == 'serverAudioSampleRate':
             self.update_settings('inputSampleRate', self.settings.serverAudioSampleRate)
             self.update_settings('outputSampleRate', self.settings.serverAudioSampleRate)
+        elif key == 'sfxDir':
+            self._load_sfx(val)
 
         self.server_audio.update_settings(key, val, old_value)
         self.vc.update_settings(key, val, old_value)
@@ -210,6 +271,7 @@ class VoiceChangerManager(ServerAudioCallbacks):
         try:
             with self.device_manager.lock:
                 audio, vol, perf = self.vc.on_request(receivedData)
+            audio = self._apply_sfx(audio)
             return audio, vol, perf, None
         except VoiceChangerIsNotSelectedException as e:
             logger.exception(e)

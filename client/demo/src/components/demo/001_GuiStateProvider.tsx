@@ -22,6 +22,7 @@ export const OpenAdvancedSettingDialogCheckbox = "open-advanced-setting-dialog-c
 export const OpenGetServerInformationDialogCheckbox = "open-get-server-information-dialog-checkbox";
 export const OpenGetClientInformationDialogCheckbox = "open-get-client-information-dialog-checkbox";
 export const OpenEnablePassThroughDialogCheckbox = "open-enable-pass-through-dialog-checkbox";
+export const OpenSfxDialogCheckbox = "open-sfx-dialog-checkbox";
 
 export const OpenTextInputDialogCheckbox = "open-text-input-dialog-checkbox";
 export const OpenShowLicenseDialogCheckbox = "open-show-license-dialog-checkbox";
@@ -51,6 +52,7 @@ export type StateControls = {
     showEnablePassThroughDialogCheckbox: StateControlCheckbox;
     showTextInputCheckbox: StateControlCheckbox;
     showLicenseCheckbox: StateControlCheckbox;
+    showSfxDialogCheckbox: StateControlCheckbox;
 };
 
 type GuiStateAndMethod = {
@@ -261,6 +263,7 @@ export const GuiStateProvider = ({ children }: Props) => {
 
     const showTextInputCheckbox = useStateControlCheckbox(OpenTextInputDialogCheckbox);
     const showLicenseCheckbox = useStateControlCheckbox(OpenShowLicenseDialogCheckbox);
+    const showSfxDialogCheckbox = useStateControlCheckbox(OpenSfxDialogCheckbox);
 
     useEffect(() => {
         openServerControlCheckbox.updateState(true);
@@ -284,6 +287,7 @@ export const GuiStateProvider = ({ children }: Props) => {
 
         showTextInputCheckbox.updateState(false);
         showLicenseCheckbox.updateState(false);
+        showSfxDialogCheckbox.updateState(false);
     }, []);
 
     useEffect(() => {
@@ -325,6 +329,7 @@ export const GuiStateProvider = ({ children }: Props) => {
 
             showTextInputCheckbox,
             showLicenseCheckbox,
+            showSfxDialogCheckbox,
         },
         isConverting,
         setIsConverting,

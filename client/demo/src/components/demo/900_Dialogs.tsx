@@ -7,6 +7,7 @@ import { AdvancedSettingDialog } from "./906_AdvancedSettingDialog";
 import { GetServerInfomationDialog } from "./907_GetServerInfomationDialog";
 import { GetClientInfomationDialog } from "./908_GetClientInfomationDialog";
 import { EnablePassThroughDialog } from "./909_EnablePassThroughDialog";
+import { SfxDialog } from "./910_SfxDialog";
 
 export const Dialogs = () => {
     const guiState = useGuiState();
@@ -34,6 +35,8 @@ export const Dialogs = () => {
                 <GetClientInfomationDialog></GetClientInfomationDialog>
                 {guiState.stateControls.showEnablePassThroughDialogCheckbox.trigger}
                 <EnablePassThroughDialog></EnablePassThroughDialog>
+                {guiState.stateControls.showSfxDialogCheckbox.trigger}
+                <SfxDialog></SfxDialog>
             </div>
         </div>
     );

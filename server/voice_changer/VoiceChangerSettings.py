@@ -191,6 +191,9 @@ class VoiceChangerSettings:
     _asioInputChannel: int = -1
     _asioOutputChannel: int = -1
 
+    _sfxEnabled: int = 0
+    _sfxDir: str = ""
+
     @property
     def serverAudioStated(self):
         return self._serverAudioStated
@@ -396,3 +399,19 @@ class VoiceChangerSettings:
     @silenceFront.setter
     def silenceFront(self, enable: str):
         self._silenceFront = int(enable)
+
+    @property
+    def sfxEnabled(self):
+        return self._sfxEnabled
+
+    @sfxEnabled.setter
+    def sfxEnabled(self, enabled: str):
+        self._sfxEnabled = int(enabled)
+
+    @property
+    def sfxDir(self):
+        return self._sfxDir
+
+    @sfxDir.setter
+    def sfxDir(self, path: str):
+        self._sfxDir = path
