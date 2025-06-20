@@ -64,6 +64,10 @@ class MMVC_Rest:
             fileUploader = MMVC_Rest_Fileuploader(voiceChangerManager)
             app_fastapi.include_router(fileUploader.router)
 
+            from restapi.MMVC_Rest_Sfx import MMVC_Rest_Sfx
+            sfx = MMVC_Rest_Sfx()
+            app_fastapi.include_router(sfx.router)
+
             cls._instance = app_fastapi
             logger.info("Initialized.")
             return cls._instance

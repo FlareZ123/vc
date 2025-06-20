@@ -36,6 +36,10 @@ export class VoiceChangerClient {
 
     private sslCertified: string[] = [];
 
+    private sfxGainNode: GainNode | null = null;
+    private sfxBuffers: AudioBuffer[] = [];
+    private sfxSources: AudioBufferSourceNode[] = [];
+
     private sem = new BlockingQueue<number>();
 
     constructor(ctx: AudioContext, vfEnable: boolean, voiceChangerWorkletListener: VoiceChangerWorkletListener) {
@@ -74,6 +78,11 @@ export class VoiceChangerClient {
             this.monitorGainNode.gain.value = this.setting.monitorGain;
             this.vcOutNode.connect(this.monitorGainNode); // vc node -> monitor node
             this.monitorGainNode.connect(this.currentMediaStreamAudioDestinationMonitorNode);
+
+            this.sfxGainNode = this.ctx.createGain();
+            this.sfxGainNode.gain.value = this.setting.outputGain;
+            this.sfxGainNode.connect(this.outputGainNode);
+            this.sfxGainNode.connect(this.monitorGainNode);
 
             if (this.vfEnable) {
                 this.vf = await VoiceFocusDeviceTransformer.create({ variant: "c20" });
@@ -245,6 +254,12 @@ export class VoiceChangerClient {
         if (this.setting.monitorGain != setting.monitorGain) {
             this.setMonitorGain(setting.monitorGain);
         }
+        if (this.setting.sfxEnabled !== setting.sfxEnabled) {
+            await this.setSfxEnabled(setting.sfxEnabled);
+        }
+        if (this.setting.sfxDirectory !== setting.sfxDirectory) {
+            await this.setSfxDirectory(setting.sfxDirectory);
+        }
 
         this.setting = setting;
         if (reconstructInputRequired) {
@@ -271,6 +286,9 @@ export class VoiceChangerClient {
             return;
         }
         this.outputGainNode.gain.value = val;
+        if (this.sfxGainNode) {
+            this.sfxGainNode.gain.value = val;
+        }
     };
 
     setMonitorGain = (val: number) => {
@@ -281,6 +299,74 @@ export class VoiceChangerClient {
             return;
         }
         this.monitorGainNode.gain.value = val;
+    };
+
+    /** Stop currently playing background SFX. */
+    private stopSfx = () => {
+        this.sfxSources.forEach((s) => {
+            try {
+                s.stop();
+            } catch (e) {}
+            s.disconnect();
+        });
+        this.sfxSources = [];
+    };
+
+    /** Start looping all loaded SFX buffers. */
+    private startSfx = () => {
+        this.stopSfx();
+        if (!this.sfxGainNode) {
+            return;
+        }
+        this.sfxSources = this.sfxBuffers.map((buf) => {
+            const src = this.ctx.createBufferSource();
+            src.buffer = buf;
+            src.loop = true;
+            src.connect(this.sfxGainNode!);
+            src.start();
+            return src;
+        });
+    };
+
+    /**
+     * Reload SFX files from server and restart playback if enabled.
+     */
+    refreshSfx = async () => {
+        const files = await this.configurator.getSfxFiles(this.setting.sfxDirectory);
+        const buffers: AudioBuffer[] = [];
+        for (const f of files) {
+            try {
+                const res = await fetch(this.setting.sfxDirectory + "/" + f);
+                const arr = await res.arrayBuffer();
+                const buf = await this.ctx.decodeAudioData(arr);
+                buffers.push(buf);
+            } catch (e) {
+                console.warn(e);
+            }
+        }
+        this.sfxBuffers = buffers;
+        if (this.setting.sfxEnabled) {
+            this.startSfx();
+        }
+    };
+
+    /** Enable or disable ambient SFX playback. */
+    setSfxEnabled = async (val: boolean) => {
+        this.setting.sfxEnabled = val;
+        if (val) {
+            this.startSfx();
+        } else {
+            this.stopSfx();
+        }
+    };
+
+    /**
+     * Update SFX directory and reload files.
+     * @param dir Relative directory on the server.
+     */
+    setSfxDirectory = async (dir: string) => {
+        this.setting.sfxDirectory = dir;
+        await this.refreshSfx();
     };
 
     /////////////////////////////////////////////////////

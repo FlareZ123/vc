@@ -59,4 +59,8 @@ export class ServerConfigurator {
     updateModelInfo = async (slot: number, key: string, val: string) => {
         return this.restClient.updateModelInfo(slot, key, val);
     };
+
+    getSfxFiles = async (dir: string) => {
+        return this.restClient.getSfxFiles(dir);
+    };
 }

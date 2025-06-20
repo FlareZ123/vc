@@ -217,6 +217,20 @@ export class ServerRestClient {
         return info;
     };
 
+    /**
+     * Fetch list of WAV files available for SFX playback.
+     * @param dir Sub directory name under the SFX root.
+     */
+    getSfxFiles = async (dir: string) => {
+        const url = this.serverUrl + `/sfx/list?dir=${encodeURIComponent(dir)}`;
+        const info = await new Promise<string[]>(async (resolve) => {
+            const request = new Request(url, { method: "GET" });
+            const res = (await (await fetch(request)).json()) as { files: string[] };
+            resolve(res.files);
+        });
+        return info;
+    };
+
     updateModelDefault = async () => {
         const url = this.serverUrl + "/update_model_default";
         const info = new Promise<ServerInfo>(async (resolve) => {

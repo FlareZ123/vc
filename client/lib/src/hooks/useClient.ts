@@ -47,6 +47,10 @@ export type ClientState = {
     setAudioOutputElementId: (elemId: string) => void;
     setAudioMonitorElementId: (elemId: string) => void;
 
+    setSfxDirectory: (dir: string) => Promise<void>;
+    setSfxEnabled: (enabled: boolean) => Promise<void>;
+    refreshSfx: () => Promise<void>;
+
     errorMessage: string;
     resetErrorMessage: () => void;
 };
@@ -194,6 +198,21 @@ export const useClient = (props: UseClientProps): ClientState => {
         }
     };
 
+    const setSfxDirectory = async (dir: string) => {
+        if (!voiceChangerClientRef.current) return;
+        await voiceChangerClientRef.current.setSfxDirectory(dir);
+    };
+
+    const setSfxEnabled = async (enabled: boolean) => {
+        if (!voiceChangerClientRef.current) return;
+        await voiceChangerClientRef.current.setSfxEnabled(enabled);
+    };
+
+    const refreshSfx = async () => {
+        if (!voiceChangerClientRef.current) return;
+        await voiceChangerClientRef.current.refreshSfx();
+    };
+
     // (2-2) 情報リロード
     const getInfo = useMemo(() => {
         return async () => {
@@ -262,6 +281,10 @@ export const useClient = (props: UseClientProps): ClientState => {
         // AudioOutputElement  設定
         setAudioOutputElementId,
         setAudioMonitorElementId,
+
+        setSfxDirectory,
+        setSfxEnabled,
+        refreshSfx,
 
         errorMessage,
         resetErrorMessage,
