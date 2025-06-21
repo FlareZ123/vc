@@ -98,6 +98,10 @@ jobs:
       run: cp ./server/{force_gpu_clocks.bat,reset_gpu_clocks.bat} ./server/dist/
       shell: bash
       if: matrix.os == 'windows-latest' && matrix.backend == 'cuda'
+    - name: Copy starting config and bat
+      run: cp ./server/{start.bat,.env} ./server/dist/MMVCServerSIO/
+      shell: bash
+      if: matrix.os == 'windows-latest' && matrix.backend == 'cuda'
     - name: Add CUDA library symlinks
       run: ln -svf nvidia/*/lib/*.so* .
       shell: bash
