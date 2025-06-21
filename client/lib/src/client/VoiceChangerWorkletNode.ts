@@ -30,6 +30,13 @@ export class VoiceChangerWorkletNode extends AudioWorkletNode {
   // performance monitor
   private bufferStart = 0;
 
+  /**
+   * Queue of timestamps (in milliseconds) representing when each buffer
+   * was sent to the server. The first element corresponds to the oldest
+   * outstanding request.
+   */
+  private requestQueue: number[] = [];
+
   private isOutputRecording = false;
   private recordingOutputChunk: Float32Array[] = [];
   private outputNode: VoiceChangerWorkletNode | null = null;
@@ -41,6 +48,25 @@ export class VoiceChangerWorkletNode extends AudioWorkletNode {
   private stopPromiseResolve:
     | ((value: void | PromiseLike<void>) => void)
     | null = null;
+
+  /**
+   * Calculates the total round-trip latency for a request.
+   *
+   * @param sentAt - Client timestamp when the request was issued.
+   * @param serverSendTimestamp - Timestamp when the server sent the response.
+   * @param serverPing - Time between client sending the request and the server
+   *   receiving it, as reported by the server.
+   * @returns The estimated network latency in milliseconds.
+   */
+  static calculateTotalPing(
+    sentAt: number,
+    serverSendTimestamp: number,
+    serverPing: number
+  ): number {
+    const roundTrip = Date.now() - sentAt;
+    const processing = serverSendTimestamp - sentAt - serverPing;
+    return roundTrip - processing;
+  }
 
   constructor(context: AudioContext, listener: VoiceChangerWorkletListener) {
     super(context, "voice-changer-worklet-processor");
@@ -136,10 +162,16 @@ export class VoiceChangerWorkletNode extends AudioWorkletNode {
         this.listener.notifyPerformanceStats(0, vol, perf);
       });
 
+      // Handle voice conversion response from the server.
       this.socket.on("response", (response: any[]) => {
-        const [sendTimestamp, audio, ping, vol, perf] = response
-        // NOTE: Large integers are packed as BigInt
-        const totalPing = Date.now() - Number(sendTimestamp) + ping;
+        const [sendTimestamp, audio, ping, vol, perf] = response;
+        // Retrieve the timestamp corresponding to this request.
+        const sentAt = this.requestQueue.shift() ?? Date.now();
+        const totalPing = VoiceChangerWorkletNode.calculateTotalPing(
+          sentAt,
+          Number(sendTimestamp),
+          ping
+        );
 
         if (audio.byteLength < 128 * 2) {
           this.listener.notifyException(
@@ -221,8 +253,18 @@ export class VoiceChangerWorkletNode extends AudioWorkletNode {
     }
   }
 
+  /**
+   * Sends a buffer of PCM audio to the server. The timestamp for the
+   * request is queued so that the matching response can be used to
+   * calculate round-trip latency without relying on clock synchronisation.
+   *
+   * @param newBuffer - The audio buffer to send.
+   */
   private sendBuffer = async (newBuffer: ArrayBuffer) => {
     const timestamp = Date.now();
+    // Track when this request was sent so we can accurately measure
+    // round-trip time once a response is received.
+    this.requestQueue.push(timestamp);
     if (this.setting.protocol === "sio") {
       if (!this.socket) {
         console.warn(`sio is not initialized`);
@@ -233,7 +275,14 @@ export class VoiceChangerWorkletNode extends AudioWorkletNode {
     } else if (this.setting.protocol === "rest") {
       const restClient = new ServerRestClient(this.setting.serverUrl);
       const data = await restClient.postVoice(timestamp, newBuffer);
-      const totalPing = Date.now() - Number(data.sendTimestamp) + data.ping;
+      // Use the timestamp queue to derive accurate ping even if the
+      // system clocks between client and server differ.
+      const sentAt = this.requestQueue.shift() ?? timestamp;
+      const totalPing = VoiceChangerWorkletNode.calculateTotalPing(
+        sentAt,
+        Number(data.sendTimestamp),
+        data.ping
+      );
       if (data.error) {
         const { code, message } = data.details
         if (code == 'ERR_SAMPLE_RATE_NOT_SUPPORTED') {
