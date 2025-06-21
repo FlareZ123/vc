@@ -75,6 +75,8 @@ RAM: at least 6GB.
 
 Disk space: at least 6GB of free disk space. For fast model loading, SSD is recommended.
 
+You can use `cmd.exe /C "copy /b voice-changer-windows-amd64-cuda.zip.001 + voice-changer-windows-amd64-cuda.zip.002 voice-changer-windows-amd64-cuda.zip"` to compose the files.
+
 ### For CPU-only voice conversion
 
 Minimum requirement: Intel Core i5-4690K or AMD FX-6300.
