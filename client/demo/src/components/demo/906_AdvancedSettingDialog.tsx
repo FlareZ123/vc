@@ -5,7 +5,16 @@ import { Protocol } from "@dannadori/voice-changer-client-js";
 
 export const AdvancedSettingDialog = () => {
     const guiState = useGuiState();
-    const { setting, serverSetting, setWorkletNodeSetting, setWorkletSetting, setVoiceChangerClientSetting } = useAppState();
+    const {
+        setting,
+        serverSetting,
+        setWorkletNodeSetting,
+        setWorkletSetting,
+        setVoiceChangerClientSetting,
+        enableSfx,
+        setSfxVolume,
+        loadSfxFiles,
+    } = useAppState();
     const dialog = useMemo(() => {
         const closeButtonRow = (
             <div className="body-row split-3-4-3 left-padding-1">
@@ -207,6 +216,44 @@ export const AdvancedSettingDialog = () => {
                 </div>
             </div>
         );
+        const sfxRow = (
+            <div className="advanced-setting-container-row">
+                <div className="advanced-setting-container-row-title">SFX</div>
+                <div className="advanced-setting-container-row-field">
+                    <input
+                        type="checkbox"
+                        checked={setting.voiceChangerClientSetting.sfxEnabled}
+                        onChange={(e) => {
+                            enableSfx(e.target.checked);
+                            setVoiceChangerClientSetting({ ...setting.voiceChangerClientSetting, sfxEnabled: e.target.checked });
+                        }}
+                    />
+                    <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={setting.voiceChangerClientSetting.sfxVolume}
+                        onChange={(e) => {
+                            const v = Number(e.target.value);
+                            setSfxVolume(v);
+                            setVoiceChangerClientSetting({ ...setting.voiceChangerClientSetting, sfxVolume: v });
+                        }}
+                    />
+                    <input
+                        type="file"
+                        webkitdirectory="true"
+                        multiple
+                        accept=".wav"
+                        onChange={(e) => {
+                            if (e.target.files) {
+                                loadSfxFiles(e.target.files);
+                            }
+                        }}
+                    />
+                </div>
+            </div>
+        );
         const content = (
             <div className="advanced-setting-container">
                 {protocolRow}
@@ -216,6 +263,7 @@ export const AdvancedSettingDialog = () => {
                 {disableJitRow}
                 {convertToOnnx}
                 {protectRow}
+                {sfxRow}
                 {skipPassThroughConfirmationRow}
             </div>
         );
@@ -229,6 +277,18 @@ export const AdvancedSettingDialog = () => {
                 </div>
             </div>
         );
-    }, [serverSetting.serverSetting, serverSetting.updateServerSettings, setting.workletNodeSetting, setWorkletNodeSetting, setting.workletSetting, setWorkletSetting, guiState.isConverting]);
+    }, [
+        serverSetting.serverSetting,
+        serverSetting.updateServerSettings,
+        setting.workletNodeSetting,
+        setWorkletNodeSetting,
+        setting.workletSetting,
+        setWorkletSetting,
+        guiState.isConverting,
+        setting.voiceChangerClientSetting,
+        enableSfx,
+        setSfxVolume,
+        loadSfxFiles,
+    ]);
     return dialog;
 };
