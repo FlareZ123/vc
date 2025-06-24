@@ -80,7 +80,14 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: client/demo/package-lock.json
+        cache-dependency-path: client/demo/package.json
+    - name: Build voice changer client library
+      shell: bash
+      run: |
+       cd client/lib
+       npm install
+       npm run build:prod
+       cd -
     - name: Build client
       shell: bash
       run: |
