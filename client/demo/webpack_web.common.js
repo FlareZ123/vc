@@ -108,4 +108,7 @@ module.exports = {
         //     patterns: [{ from: "public/models/amitaro.png", to: "models/amitaro.png" }],
         // }),
     ],
+    optimization: {
+        minimize: false,
+    }
 };

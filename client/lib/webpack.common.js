@@ -39,4 +39,7 @@ module.exports = {
         react: "react",
         "react-dom": "reactDOM",
     },
+    optimization: {
+        minimize: false,  // disables TerserPlugin (JS) and CssMinimizerPlugin (CSS)
+    },
 };
