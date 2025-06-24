@@ -75,6 +75,20 @@ jobs:
         # remove-large-packages: 'true'
         remove-haskell: 'true'
     - uses: actions/checkout@v4
+    - name: Setup Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: client/demo/package-lock.json
+    - name: Build client
+      shell: bash
+      run: |
+        cd client/demo
+        npx npm-check-updates -u || true
+        npm install
+        npm run build:prod
+        cd -
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
