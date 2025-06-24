@@ -355,7 +355,7 @@ you encounter during usage.
    * For Nvidia (any OS):
 
      ```
-     pip install -r requirements-common.txt -r requirements-cuda.txt
+     python -m pip install --extra-index-url https://download.pytorch.org/whl/cu126 -r requirements-common.txt -r requirements-cuda.txt
      ```
 
    * For AMD ROCm (Linux only):
