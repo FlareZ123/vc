@@ -376,6 +376,10 @@ python ./main.py
 
 This will run the server with default settings. Note that it will not open the web browser by default, copy the address from command line.
 
+### Ambient background SFX
+
+Place WAV files in `client/demo/public/assets/sfx`. Provide a `files.json` file inside the same directory containing an array of file names. Enable **Ambient SFX** from the **Advanced Setting** dialog. Use the **Refresh** button to reload the list of files at runtime.
+
 ### Building a package
 
 1. [If not installed] Install `pyinstaller` with the following command:

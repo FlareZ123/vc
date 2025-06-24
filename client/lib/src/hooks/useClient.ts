@@ -43,6 +43,8 @@ export type ClientState = {
     getInfo: () => Promise<void>;
     // 設定クリア
     clearSetting: () => Promise<void>;
+    /** Reload SFX file list */
+    refreshSfx: () => Promise<void>;
     // AudioOutputElement  設定
     setAudioOutputElementId: (elemId: string) => void;
     setAudioMonitorElementId: (elemId: string) => void;
@@ -207,6 +209,15 @@ export const useClient = (props: UseClientProps): ClientState => {
         await removeItem("clientSetting");
     };
 
+    const refreshSfx = useMemo(() => {
+        return async () => {
+            await initializedPromise;
+            if (voiceChangerClientRef.current) {
+                await voiceChangerClientRef.current.refreshSfx();
+            }
+        };
+    }, []);
+
     // 設定変更
     const setVoiceChangerClientSetting = (_voiceChangerClientSetting: VoiceChangerClientSetting) => {
         setting.voiceChangerClientSetting = _voiceChangerClientSetting;
@@ -258,6 +269,7 @@ export const useClient = (props: UseClientProps): ClientState => {
 
         // 設定クリア
         clearSetting,
+        refreshSfx,
 
         // AudioOutputElement  設定
         setAudioOutputElementId,

@@ -5,7 +5,7 @@ import { Protocol } from "@dannadori/voice-changer-client-js";
 
 export const AdvancedSettingDialog = () => {
     const guiState = useGuiState();
-    const { setting, serverSetting, setWorkletNodeSetting, setWorkletSetting, setVoiceChangerClientSetting } = useAppState();
+    const { setting, serverSetting, setWorkletNodeSetting, setWorkletSetting, setVoiceChangerClientSetting, refreshSfx } = useAppState();
     const dialog = useMemo(() => {
         const closeButtonRow = (
             <div className="body-row split-3-4-3 left-padding-1">
@@ -191,6 +191,32 @@ export const AdvancedSettingDialog = () => {
             </div>
         );
 
+        const sfxRow = (
+            <div className="advanced-setting-container-row">
+                <div className="advanced-setting-container-row-title">Ambient SFX</div>
+                <div className="advanced-setting-container-row-field">
+                    <input
+                        type="checkbox"
+                        checked={setting.voiceChangerClientSetting.sfxEnabled}
+                        onChange={(e) => {
+                            setVoiceChangerClientSetting({
+                                ...setting.voiceChangerClientSetting,
+                                sfxEnabled: e.target.checked,
+                            });
+                        }}
+                    />
+                    <div
+                        className="body-button"
+                        onClick={() => {
+                            refreshSfx();
+                        }}
+                    >
+                        Refresh
+                    </div>
+                </div>
+            </div>
+        );
+
         const skipPassThroughConfirmationRow = (
             <div className="advanced-setting-container-row">
                 <div className="advanced-setting-container-row-title-long">Skip Pass through confirmation</div>
@@ -216,6 +242,7 @@ export const AdvancedSettingDialog = () => {
                 {disableJitRow}
                 {convertToOnnx}
                 {protectRow}
+                {sfxRow}
                 {skipPassThroughConfirmationRow}
             </div>
         );

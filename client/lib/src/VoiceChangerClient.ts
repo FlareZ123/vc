@@ -3,7 +3,7 @@ import { VoiceChangerWorkletNode, VoiceChangerWorkletListener } from "./client/V
 import workerjs from "raw-loader!../worklet/dist/index.js";
 import { VoiceFocusDeviceTransformer, VoiceFocusTransformDevice } from "amazon-chime-sdk-js";
 import { createDummyMediaStream, validateUrl } from "./util";
-import { DefaultClientSettng, MergeModelRequest, ServerSettingKey, VoiceChangerClientSetting, WorkletNodeSetting, WorkletSetting } from "./const";
+import { DefaultClientSettng, MergeModelRequest, ServerSettingKey, VoiceChangerClientSetting, WorkletNodeSetting, WorkletSetting, SFX_DIR } from "./const";
 import { ServerConfigurator } from "./client/ServerConfigurator";
 
 // オーディオデータの流れ
@@ -36,7 +36,79 @@ export class VoiceChangerClient {
 
     private sslCertified: string[] = [];
 
+    /** Gain node for background SFX to match output volume */
+    private sfxGainNode: GainNode | null = null;
+    /** Loaded audio buffers for background SFX */
+    private sfxBuffers: AudioBuffer[] = [];
+    /** Currently playing SFX source nodes */
+    private sfxSources: AudioBufferSourceNode[] = [];
+
     private sem = new BlockingQueue<number>();
+
+    /////////////////////////////////////////////////////
+    // SFX Helpers
+    /////////////////////////////////////////////////////
+    /**
+     * Fetch and decode all WAV files listed in `files.json` located inside
+     * {@link SFX_DIR}. Decoded buffers are cached in {@link sfxBuffers}.
+     */
+    private refreshSfxBuffers = async (): Promise<void> => {
+        try {
+            const res = await fetch(`${SFX_DIR}/files.json`);
+            const files: string[] = await res.json();
+            const buffers: AudioBuffer[] = [];
+            for (const f of files) {
+                try {
+                    const r = await fetch(`${SFX_DIR}/${f}`);
+                    const b = await r.arrayBuffer();
+                    const ab = await this.ctx.decodeAudioData(b);
+                    buffers.push(ab);
+                } catch (e) {
+                    console.warn("Failed loading SFX", f, e);
+                }
+            }
+            this.sfxBuffers = buffers;
+        } catch (e) {
+            console.error("Failed refreshing SFX list", e);
+            this.sfxBuffers = [];
+        }
+    };
+
+    /**
+     * Begin looping playback for all loaded SFX buffers.
+     * Existing sources are stopped before new ones start.
+     */
+    private startSfx = () => {
+        if (!this.outputGainNode || this.sfxBuffers.length === 0) return;
+        if (!this.sfxGainNode) {
+            this.sfxGainNode = this.ctx.createGain();
+            this.sfxGainNode.gain.value = this.outputGainNode.gain.value;
+            this.sfxGainNode.connect(this.outputGainNode);
+        }
+        this.stopSfx();
+        for (const buf of this.sfxBuffers) {
+            const src = this.ctx.createBufferSource();
+            src.buffer = buf;
+            src.loop = true;
+            src.connect(this.sfxGainNode);
+            src.start();
+            this.sfxSources.push(src);
+        }
+    };
+
+    /**
+     * Stop and disconnect every playing SFX source.
+     * Called when disabling the feature or when refreshing files.
+     */
+    private stopSfx = () => {
+        this.sfxSources.forEach((s) => {
+            try {
+                s.stop();
+                s.disconnect();
+            } catch {}
+        });
+        this.sfxSources = [];
+    };
 
     constructor(ctx: AudioContext, vfEnable: boolean, voiceChangerWorkletListener: VoiceChangerWorkletListener) {
         this.sem.enqueue(0);
@@ -97,6 +169,17 @@ export class VoiceChangerClient {
             await this.promiseForInitialize;
         }
         return true;
+    };
+
+    /**
+     * Reload background SFX files from {@link SFX_DIR} and restart playback if
+     * the feature is enabled.
+     */
+    refreshSfx = async () => {
+        await this.refreshSfxBuffers();
+        if (this.setting.sfxEnabled) {
+            this.startSfx();
+        }
     };
 
     /////////////////////////////////////////////////////
@@ -245,6 +328,15 @@ export class VoiceChangerClient {
         if (this.setting.monitorGain != setting.monitorGain) {
             this.setMonitorGain(setting.monitorGain);
         }
+        if (this.setting.sfxEnabled !== setting.sfxEnabled) {
+            this.setting.sfxEnabled = setting.sfxEnabled;
+            if (setting.sfxEnabled) {
+                await this.refreshSfxBuffers();
+                this.startSfx();
+            } else {
+                this.stopSfx();
+            }
+        }
 
         this.setting = setting;
         if (reconstructInputRequired) {
@@ -271,6 +363,9 @@ export class VoiceChangerClient {
             return;
         }
         this.outputGainNode.gain.value = val;
+        if (this.sfxGainNode) {
+            this.sfxGainNode.gain.value = val;
+        }
     };
 
     setMonitorGain = (val: number) => {

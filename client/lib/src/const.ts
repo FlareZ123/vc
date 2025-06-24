@@ -328,6 +328,9 @@ export const DownSamplingMode = {
 } as const;
 export type DownSamplingMode = (typeof DownSamplingMode)[keyof typeof DownSamplingMode];
 
+/** Default path for background SFX files relative to the public folder. */
+export const SFX_DIR = "/assets/sfx";
+
 export type WorkletNodeSetting = {
     serverUrl: string;
     protocol: Protocol;
@@ -354,6 +357,9 @@ export type VoiceChangerClientSetting = {
     inputGain: number;
     outputGain: number;
     monitorGain: number;
+
+    /** Enable or disable background SFX looping */
+    sfxEnabled: boolean;
 
     passThroughConfirmationSkip: boolean;
 };
@@ -385,6 +391,7 @@ export const DefaultClientSettng: ClientSetting = {
         inputGain: 1.0,
         outputGain: 1.0,
         monitorGain: 1.0,
+        sfxEnabled: false,
         passThroughConfirmationSkip: false,
     },
 };
