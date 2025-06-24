@@ -85,7 +85,6 @@ jobs:
       shell: bash
       run: |
         cd client/demo
-        npx npm-check-updates -u || true
         npm install
         npm run build:prod
         cd -
