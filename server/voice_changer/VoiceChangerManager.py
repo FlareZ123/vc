@@ -221,8 +221,6 @@ class VoiceChangerManager(ServerAudioCallbacks):
             logger.exception(e)
             return np.zeros(1, dtype=np.float32), 0, [0, 0, 0], ('Exception', format_exc())
 
-    def export2onnx(self):
-        return self.vc.export2onnx()
 
     async def merge_models(self, request: str) -> str | None:
         # self.vc.merge_models(request)

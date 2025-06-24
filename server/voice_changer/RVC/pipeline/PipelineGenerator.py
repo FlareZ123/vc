@@ -15,15 +15,11 @@ from settings import get_settings
 import logging
 logger = logging.getLogger(__name__)
 
-def createPipeline(modelSlot: RVCModelSlot, f0Detector: str, useONNX: bool, force_reload: bool):
+def createPipeline(modelSlot: RVCModelSlot, f0Detector: str, force_reload: bool):
     model_dir = get_settings().model_dir
     # Inferencer 生成
-    if useONNX:
-        modelPath = os.path.join(model_dir, str(modelSlot.slotIndex), os.path.basename(modelSlot.modelFileOnnx))
-        inferencer = InferencerManager.getInferencer(modelSlot.modelTypeOnnx, modelPath)
-    else:
-        modelPath = os.path.join(model_dir, str(modelSlot.slotIndex), os.path.basename(modelSlot.modelFile))
-        inferencer = InferencerManager.getInferencer(modelSlot.modelType, modelPath)
+    modelPath = os.path.join(model_dir, str(modelSlot.slotIndex), os.path.basename(modelSlot.modelFile))
+    inferencer = InferencerManager.getInferencer(modelSlot.modelType, modelPath)
 
     # Embedder 生成
     embedder = EmbedderManager.get_embedder(modelSlot.embedder, force_reload)

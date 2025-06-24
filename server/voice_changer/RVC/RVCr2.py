@@ -12,7 +12,6 @@ from voice_changer.utils.VoiceChangerModel import (
     VoiceChangerModel,
 )
 from voice_changer.RVC.consts import HUBERT_SAMPLE_RATE, WINDOW_SIZE
-from voice_changer.RVC.onnx_exporter.export2onnx import export2onnx
 from voice_changer.pitch_extractor.PitchExtractorManager import PitchExtractorManager
 from voice_changer.RVC.pipeline.PipelineGenerator import createPipeline
 from voice_changer.common.TorchUtils import circular_write
@@ -63,13 +62,10 @@ class RVCr2(VoiceChangerModel):
     def initialize(self, force_reload: bool = False):
         logger.info("Initializing...")
 
-        if self.settings.useONNX and not self.slotInfo.modelFileOnnx:
-            self.export2onnx()
-
         # pipelineの生成
         try:
             self.pipeline = createPipeline(
-                self.slotInfo, self.settings.f0Detector, self.settings.useONNX, force_reload
+                self.slotInfo, self.settings.f0Detector, force_reload
             )
         except Exception as e:  # NOQA
             logger.error("Failed to create pipeline.")
@@ -118,8 +114,6 @@ class RVCr2(VoiceChangerModel):
             self.is_half = self.device_manager.use_fp16()
             self.dtype = torch.float16 if self.is_half else torch.float32
             self.initialize(True)
-        elif key == 'useONNX':
-            self.initialize()
         elif key == "f0Detector" and self.pipeline is not None:
             self.change_pitch_extractor()
         elif key == 'silentThreshold':
@@ -281,18 +275,6 @@ class RVCr2(VoiceChangerModel):
     def __del__(self):
         del self.pipeline
 
-    def export2onnx(self):
-        modelSlot = self.slotInfo
-
-        if modelSlot.isONNX:
-            logger.error(f"{modelSlot.modelFile} is already in ONNX format.")
-            return
-
-        output_path = export2onnx(modelSlot)
-
-        self.slotInfo.modelFileOnnx = os.path.basename(output_path)
-        self.slotInfo.modelTypeOnnx = EnumInferenceTypes.onnxRVC.value if self.slotInfo.f0 else EnumInferenceTypes.onnxRVCNono.value
-        saveSlotInfo(self.params.model_dir, self.slotInfo.slotIndex, self.slotInfo)
 
     def get_model_current(self) -> dict:
         return [

@@ -188,17 +188,6 @@ export class ServerRestClient {
         return info;
     };
 
-    export2onnx = async () => {
-        const url = this.serverUrl + "/onnx";
-        const info = new Promise<OnnxExporterInfo>(async (resolve) => {
-            const request = new Request(url, {
-                method: "GET",
-            });
-            const res = (await (await fetch(request)).json()) as OnnxExporterInfo;
-            resolve(res);
-        });
-        return info;
-    };
 
     mergeModel = async (req: MergeModelRequest) => {
         const url = this.serverUrl + "/merge_model";

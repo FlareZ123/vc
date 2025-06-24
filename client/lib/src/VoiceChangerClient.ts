@@ -290,9 +290,6 @@ export class VoiceChangerClient {
     getModelType = () => {
         return this.configurator.getModelType();
     };
-    getOnnx = async () => {
-        return this.configurator.export2onnx();
-    };
     mergeModel = async (req: MergeModelRequest) => {
         return this.configurator.mergeModel(req);
     };

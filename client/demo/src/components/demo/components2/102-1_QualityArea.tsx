@@ -21,7 +21,7 @@ export const QualityArea = (props: QualityAreaProps) => {
 
         const generateF0DetOptions = () => {
             if (edition.indexOf("DirectML") >= 0) {
-                const recommended = ["crepe_full_onnx", "crepe_tiny_onnx", "rmvpe_onnx", "fcpe_onnx"];
+                const recommended = [];
                 return Object.values(props.detectors).map((x) => {
                     if (recommended.includes(x)) {
                         return (

@@ -42,8 +42,6 @@ class EnumInferenceTypes(Enum):
     pyTorchRVCv2Nono = "pyTorchRVCv2Nono"
     pyTorchWebUI = "pyTorchWebUI"
     pyTorchWebUINono = "pyTorchWebUINono"
-    onnxRVC = "onnxRVC"
-    onnxRVCNono = "onnxRVCNono"
 
 F0_MIN = 50
 F0_MAX = 1100
@@ -53,12 +51,8 @@ F0_MEL_MAX = 1127 * np.log(1 + F0_MAX / 700)
 PitchExtractorType: TypeAlias = Literal[
     "crepe_full",
     "crepe_tiny",
-    "crepe_full_onnx",
-    "crepe_tiny_onnx",
     "rmvpe",
-    "rmvpe_onnx",
     "fcpe",
-    "fcpe_onnx",
 ]
 
 ServerAudioDeviceType: TypeAlias = Literal["audioinput", "audiooutput"]

@@ -38,22 +38,14 @@ class PitchExtractorManager(Protocol):
                 return CrepePitchExtractor(pitch_extractor, cls.params.crepe_tiny)
             elif pitch_extractor == 'crepe_full':
                 return CrepePitchExtractor(pitch_extractor, cls.params.crepe_full)
-            elif pitch_extractor == "crepe_tiny_onnx":
-                return CrepeOnnxPitchExtractor(pitch_extractor, cls.params.crepe_onnx_tiny)
-            elif pitch_extractor == "crepe_full_onnx":
-                return CrepeOnnxPitchExtractor(pitch_extractor, cls.params.crepe_onnx_full)
             elif pitch_extractor == "rmvpe":
                 return RMVPEPitchExtractor(cls.params.rmvpe)
-            elif pitch_extractor == "rmvpe_onnx":
-                return RMVPEOnnxPitchExtractor(cls.params.rmvpe_onnx)
             elif pitch_extractor == "fcpe":
                 return FcpePitchExtractor(cls.params.fcpe)
-            elif pitch_extractor == "fcpe_onnx":
-                return FcpeOnnxPitchExtractor(cls.params.fcpe_onnx)
             else:
-                logger.warning(f"PitchExctractor not found {pitch_extractor}. Fallback to rmvpe_onnx")
-                return RMVPEOnnxPitchExtractor(cls.params.rmvpe_onnx)
+                logger.warning(f"PitchExctractor not found {pitch_extractor}. Fallback to rmvpe")
+                return RMVPEPitchExtractor(cls.params.rmvpe)
         except RuntimeError as e:
-            logger.error(f'Failed to load {pitch_extractor}. Fallback to rmvpe_onnx.')
+            logger.error(f'Failed to load {pitch_extractor}. Fallback to rmvpe.')
             logger.exception(e)
-            return RMVPEOnnxPitchExtractor(cls.params.rmvpe_onnx)
+            return RMVPEPitchExtractor(cls.params.rmvpe)

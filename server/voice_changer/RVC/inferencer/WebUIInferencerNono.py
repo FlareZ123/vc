@@ -3,7 +3,7 @@ from const import EnumInferenceTypes
 
 from voice_changer.common.deviceManager.DeviceManager import DeviceManager
 from voice_changer.RVC.inferencer.Inferencer import Inferencer
-from voice_changer.RVC.inferencer.rvc_models.infer_pack.models_onnx import SynthesizerTrnMsNSFsidM_nono
+from voice_changer.RVC.inferencer.rvc_models.infer_pack.models import SynthesizerTrnMs256NSFsid_nono
 
 
 class WebUIInferencerNono(Inferencer):
@@ -15,7 +15,7 @@ class WebUIInferencerNono(Inferencer):
         is_half = device_manager.use_fp16()
 
         cpt = torch.load(file, map_location="cpu")
-        model = SynthesizerTrnMsNSFsidM_nono(**cpt["params"], is_half=is_half)
+        model = SynthesizerTrnMs256NSFsid_nono(**cpt["params"], is_half=is_half)
 
         model.eval()
         model.load_state_dict(cpt["weight"], strict=False)

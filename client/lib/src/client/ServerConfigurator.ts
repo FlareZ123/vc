@@ -44,9 +44,6 @@ export class ServerConfigurator {
         return this.restClient.getModelType();
     };
 
-    export2onnx = async () => {
-        return this.restClient.export2onnx();
-    };
 
     mergeModel = async (req: MergeModelRequest) => {
         return this.restClient.mergeModel(req);

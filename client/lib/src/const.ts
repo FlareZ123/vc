@@ -30,12 +30,8 @@ export const F0Detector = {
     harvest: "harvest",
     crepe_full: "crepe_full",
     crepe_tiny: "crepe_tiny",
-    crepe_full_onnx: "crepe_full_onnx",
-    crepe_tiny_onnx: "crepe_tiny_onnx",
     rmvpe: "rmvpe",
-    rmvpe_onnx: "rmvpe_onnx",
     fcpe: "fcpe",
-    fcpe_onnx: "fcpe_onnx",
 } as const;
 export type F0Detector = (typeof F0Detector)[keyof typeof F0Detector];
 
@@ -52,8 +48,6 @@ export const RVCModelType = {
     pyTorchRVCv2Nono: "pyTorchRVCv2Nono",
     pyTorchWebUI: "pyTorchWebUI",
     pyTorchWebUINono: "pyTorchWebUINono",
-    onnxRVC: "onnxRVC",
-    onnxRVCNono: "onnxRVCNono",
 } as const;
 export type RVCModelType = (typeof RVCModelType)[keyof typeof RVCModelType];
 
@@ -66,7 +60,6 @@ export const ServerSettingKey = {
     crossFadeOverlapSize: "crossFadeOverlapSize",
 
     framework: "framework",
-    onnxExecutionProvider: "onnxExecutionProvider",
 
     f0Factor: "f0Factor",
     f0Detector: "f0Detector",
@@ -171,14 +164,12 @@ type ModelSlot = {
 
 export type RVCModelSlot = ModelSlot & {
     modelFile: string;
-    modelFileOnnx: string;
     indexFile: string;
     defaultIndexRatio: number;
     defaultProtect: number;
     defaultTune: number;
     defaultFormantShift: number;
     modelType: RVCModelType;
-    modelTypeOnnx: string;
 
     embChannels: number;
     f0: boolean;
@@ -269,11 +260,10 @@ export const DefaultServerSetting: ServerInfo = {
     gpu: 0,
 
     f0Factor: 1.0,
-    f0Detector: F0Detector.rmvpe_onnx,
+    f0Detector: F0Detector.rmvpe,
 
     tran: 0,
     formantShift: 0,
-    useONNX: 0,
 
     silentThreshold: 0,
     extraConvertSize: 0,

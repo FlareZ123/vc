@@ -290,10 +290,6 @@ export const GuiStateProvider = ({ children }: Props) => {
         const show = () => {
             // const lang = window.navigator.language
             // const edition = appGuiSettingState.edition
-            // console.log("appGuiSettingState.edition", appGuiSettingState.edition, lang)
-            // if ((edition == "onnxdirectML-cuda" || edition == "") && lang == "ja") {
-            //     return
-            // }
 
             document.getElementById("dialog")?.classList.add("dialog-container-show");
             showStartingNoticeCheckbox.updateState(true);

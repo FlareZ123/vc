@@ -1,6 +1,5 @@
 from typing import Any, Protocol
 import torch
-import onnxruntime
 
 from const import EnumInferenceTypes
 
@@ -9,7 +8,7 @@ class Inferencer(Protocol):
     inferencerType: EnumInferenceTypes = EnumInferenceTypes.pyTorchRVC
     file: str
 
-    model: onnxruntime.InferenceSession | Any | None = None
+    model: Any | None = None
 
     def load_model(self, file: str):
         ...

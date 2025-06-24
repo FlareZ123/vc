@@ -113,7 +113,6 @@ A dedicated graphics card Nvidia GeForce RTX 20 Series or later, or AMD Radeon R
 * When changing **Chunk**, **Extra** or **Crossfade size** settings, you must switch device to CPU then back to your GPU.
   Otherwise, performance issues can be observed.
 
-* Only `rmvpe_onnx`, `fcpe_onnx`, `crepe_tiny_onnx` and `crepe_full_onnx` are available in the list of **F0 Det.**.
 
 * When using a laptop with integrated GPU and dedicated GPU, severely degraded performance (up to 50% reduction) can be observed when running the voice changer on built-in display.
 
@@ -245,10 +244,7 @@ Refer to corresponding [Colab](https://github.com/deiteris/voice-changer/blob/ma
 
 Either the remote files have changed or your files were corrupted. The error will show which files are affected above the error:
 
-```
-[WeightDownloader] 'pretrain/content_vec_500.onnx failed to pass hash verification check. Got 1931e237626b80d65ae44cbacd4a5197, expected ab288ca5b540a4a15909a40edf875d1e'
-[WeightDownloader] 'pretrain/rmvpe.onnx failed to pass hash verification check. Got 65030149d579a65f15aa7e85769c32f1, expected b6979bf69503f8ec48c135000028a7b0'
-```
+
 
 Find and delete the mentioned files from the voice changer folder and restart the voice changer. Deleted files will be re-downloaded.
 

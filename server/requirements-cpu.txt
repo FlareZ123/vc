@@ -8,9 +8,6 @@ torch
 torchaudio
 faiss-cpu
 
-onnxscript
-onnxsim
-onnxruntime
 torchcrepe
 torchfcpe
 safetensors

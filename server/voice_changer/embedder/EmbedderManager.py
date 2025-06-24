@@ -1,6 +1,6 @@
 from const import EmbedderType
 from voice_changer.embedder.Embedder import Embedder
-from voice_changer.embedder.OnnxContentvec import OnnxContentvec
+from voice_changer.embedder.DummyEmbedder import DummyEmbedder
 from settings import ServerSettings, get_settings
 import logging
 logger = logging.getLogger(__name__)
@@ -29,5 +29,5 @@ class EmbedderManager:
 
         if embedder_type not in ["hubert_base", "contentvec"]:
             raise RuntimeError(f'Unsupported embedder type: {embedder_type}')
-        file = cls.params.content_vec_500_onnx
-        return OnnxContentvec().load_model(file)
+        file = cls.params.content_vec_500
+        return DummyEmbedder().load_model(file)

@@ -170,9 +170,6 @@ class VoiceChangerV2:
 
         return result, vol, [0, mainprocess_time, 0]
 
-    @torch.no_grad()
-    def export2onnx(self):
-        return self.vcmodel.export2onnx()
 
     def get_current_model_settings(self) -> dict:
         return self.vcmodel.get_model_current()

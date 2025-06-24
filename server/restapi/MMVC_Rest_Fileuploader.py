@@ -21,7 +21,6 @@ class MMVC_Rest_Fileuploader:
         self.router.add_api_route("/upload_file", self.post_upload_file, methods=["POST"])
         self.router.add_api_route("/update_settings", self.post_update_settings, methods=["POST"])
         self.router.add_api_route("/load_model", self.post_load_model, methods=["POST"])
-        self.router.add_api_route("/onnx", self.get_onnx, methods=["GET"])
         self.router.add_api_route("/merge_model", self.post_merge_models, methods=["POST"])
         self.router.add_api_route("/update_model_default", self.post_update_model_default, methods=["POST"])
         self.router.add_api_route("/update_model_info", self.post_update_model_info, methods=["POST"])
@@ -65,14 +64,6 @@ class MMVC_Rest_Fileuploader:
             # logger.info(f"paramDict", loadModelparams)
 
             info = await self.voiceChangerManager.load_model(loadModelparams)
-            json_compatible_item_data = jsonable_encoder(info)
-            return JSONResponse(content=json_compatible_item_data)
-        except Exception as e:
-            logger.exception(e)
-
-    def get_onnx(self):
-        try:
-            info = self.voiceChangerManager.export2onnx()
             json_compatible_item_data = jsonable_encoder(info)
             return JSONResponse(content=json_compatible_item_data)
         except Exception as e:

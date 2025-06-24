@@ -141,7 +141,6 @@ async def _downloadSamples(samples: list[ModelSamples], sampleModelIds: list[Tup
             slotInfo.defaultTune = 0
             slotInfo.defaultIndexRatio = 0
             slotInfo.defaultProtect = 0.5
-            slotInfo.isONNX = slotInfo.modelFile.endswith(".onnx")
             modelSlotManager.save_model_slot(targetSlotIndex, slotInfo)
         else:
             logger.warning(f"{sample.voiceChangerType} is not supported.")

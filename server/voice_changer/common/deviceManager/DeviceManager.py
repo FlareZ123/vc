@@ -1,5 +1,4 @@
 import torch
-import onnxruntime
 import re
 import threading
 from typing import TypedDict, Literal
@@ -114,24 +113,6 @@ class DeviceManager(object):
             devices.append(device)
         return devices
 
-    def get_onnx_execution_provider(self):
-        cpu_settings = {
-            "intra_op_num_threads": 8,
-            "execution_mode": onnxruntime.ExecutionMode.ORT_PARALLEL,
-            "inter_op_num_threads": 8,
-        }
-        availableProviders = onnxruntime.get_available_providers()
-        if self.device.type == 'cuda' and "ROCMExecutionProvider" in availableProviders:
-            return ["ROCMExecutionProvider", "CPUExecutionProvider"], [{"device_id": self.device.index}, cpu_settings]
-        elif self.device.type == 'cuda' and "CUDAExecutionProvider" in availableProviders:
-            return ["CUDAExecutionProvider", "CPUExecutionProvider"], [{"device_id": self.device.index}, cpu_settings]
-        elif self.device.type == 'privateuseone' and "DmlExecutionProvider" in availableProviders:
-            return ["DmlExecutionProvider", "CPUExecutionProvider"], [{"device_id": self.device.index}, cpu_settings]
-        elif 'CoreMLExecutionProvider' in availableProviders:
-            coreml_flags = CoreMLFlag.ONLY_ENABLE_DEVICE_WITH_ANE
-            return ["CoreMLExecutionProvider", "CPUExecutionProvider"], [{'coreml_flags': coreml_flags}, cpu_settings]
-        else:
-            return ["CPUExecutionProvider"], [cpu_settings]
 
     def set_disable_jit(self, disable_jit: bool):
         if self.mps_enabled:
