@@ -10,6 +10,7 @@ import { io, Socket } from "socket.io-client";
 import { DefaultEventsMap } from "@socket.io/component-emitter";
 import { ServerRestClient } from "./ServerRestClient";
 import * as msgpackrParser from "./sio/msgpackr";
+import { SFXPlayer } from "../utils/SFXPlayer";
 
 export type VoiceChangerWorkletListener = {
   notifySendBufferingTime: (time: number) => void;
@@ -34,6 +35,10 @@ export class VoiceChangerWorkletNode extends AudioWorkletNode {
   private recordingOutputChunk: Float32Array[] = [];
   private outputNode: VoiceChangerWorkletNode | null = null;
 
+  private sfxPlayer: SFXPlayer | null = null;
+  private sfxThreshold = 0.02;
+  private lastActive = 0;
+
   // Promises
   private startPromiseResolve:
     | ((value: void | PromiseLike<void>) => void)
@@ -51,6 +56,10 @@ export class VoiceChangerWorkletNode extends AudioWorkletNode {
 
   setOutputNode = (outputNode: VoiceChangerWorkletNode | null) => {
     this.outputNode = outputNode;
+  };
+
+  setSfxPlayer = (player: SFXPlayer | null) => {
+    this.sfxPlayer = player;
   };
 
   // 設定
@@ -193,7 +202,20 @@ export class VoiceChangerWorkletNode extends AudioWorkletNode {
       }
     } else if (event.data.responseType === "inputData") {
       const inputData = event.data.inputData as Float32Array;
+      if (!inputData || inputData.length === 0) {
+        console.warn("VoiceChangerWorkletNode: invalid input buffer");
+        return;
+      }
       // console.log("receive input data", inputData);
+
+      // Microphone activity detection
+      const rms = Math.sqrt(inputData.reduce((p, c) => p + c * c, 0) / inputData.length);
+      if (rms > this.sfxThreshold) {
+        this.lastActive = Date.now();
+        this.sfxPlayer?.start();
+      } else if (Date.now() - this.lastActive > 300) {
+        this.sfxPlayer?.stop();
+      }
 
       // Float to Int16 (internalの場合はfloatのまま行く。)
       const offset = inputData.length * this.chunkCounter;

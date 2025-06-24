@@ -130,6 +130,8 @@ class VoiceChangerManager(ServerAudioCallbacks):
 
         data["status"] = "OK"
 
+        data["sfx_dir"] = self.settings.sfx_dir
+
         info = self.server_audio.get_info()
         data.update(info)
 

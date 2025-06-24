@@ -26,6 +26,10 @@ export type ClientState = {
     stopOutputRecording: () => Promise<Float32Array>;
     trancateBuffer: () => Promise<void>;
 
+    loadSfxFiles: (files: FileList) => Promise<void>;
+    enableSfx: (enable: boolean) => void;
+    setSfxVolume: (volume: number) => void;
+
     setWorkletSetting: (_workletSetting: WorkletSetting) => void;
     // workletSetting: WorkletSetting
     // workletSetting: WorkletSettingState
@@ -243,6 +247,17 @@ export const useClient = (props: UseClientProps): ClientState => {
         startOutputRecording: workletNodeSetting.startOutputRecording,
         stopOutputRecording: workletNodeSetting.stopOutputRecording,
         trancateBuffer: workletNodeSetting.trancateBuffer,
+
+        loadSfxFiles: async (f: FileList) => {
+            if (!voiceChangerClient) return;
+            await voiceChangerClient.loadSfxFiles(f);
+        },
+        enableSfx: (e: boolean) => {
+            voiceChangerClient?.enableSfx(e);
+        },
+        setSfxVolume: (v: number) => {
+            voiceChangerClient?.setSfxVolume(v);
+        },
 
         setWorkletSetting,
         // workletSetting: workletSettingIF.setting,

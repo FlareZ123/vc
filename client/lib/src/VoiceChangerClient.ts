@@ -11,6 +11,7 @@ import { ServerConfigurator } from "./client/ServerConfigurator";
 //    sio/rest server ->  [vc node] -> output node
 
 import { BlockingQueue } from "./utils/BlockingQueue";
+import { SFXPlayer } from "./utils/SFXPlayer";
 
 export class VoiceChangerClient {
     private configurator: ServerConfigurator;
@@ -37,12 +38,15 @@ export class VoiceChangerClient {
     private sslCertified: string[] = [];
 
     private sem = new BlockingQueue<number>();
+    private sfxPlayer: SFXPlayer;
 
     constructor(ctx: AudioContext, vfEnable: boolean, voiceChangerWorkletListener: VoiceChangerWorkletListener) {
         this.sem.enqueue(0);
         this.configurator = new ServerConfigurator("");
         this.ctx = ctx;
         this.vfEnable = vfEnable;
+        this.sfxPlayer = new SFXPlayer(this.ctx);
+        this.sfxPlayer.setVolume(this.setting.sfxVolume);
         this.promiseForInitialize = new Promise<void>(async (resolve) => {
             const scriptUrl = URL.createObjectURL(new Blob([workerjs], { type: "text/javascript" }));
 
@@ -67,12 +71,14 @@ export class VoiceChangerClient {
             this.outputGainNode = this.ctx.createGain();
             this.outputGainNode.gain.value = this.setting.outputGain;
             this.vcOutNode.connect(this.outputGainNode); // vc node -> output node
+            this.sfxPlayer.output.connect(this.outputGainNode); // sfx -> output
             this.outputGainNode.connect(this.currentMediaStreamAudioDestinationNode);
 
             this.currentMediaStreamAudioDestinationMonitorNode = this.ctx.createMediaStreamDestination(); // output node
             this.monitorGainNode = this.ctx.createGain();
             this.monitorGainNode.gain.value = this.setting.monitorGain;
             this.vcOutNode.connect(this.monitorGainNode); // vc node -> monitor node
+            this.sfxPlayer.output.connect(this.monitorGainNode); // sfx -> monitor
             this.monitorGainNode.connect(this.currentMediaStreamAudioDestinationMonitorNode);
 
             if (this.vfEnable) {
@@ -185,6 +191,7 @@ export class VoiceChangerClient {
             this.inputGainNode.connect(this.vcInNode);
         }
         this.vcInNode.setOutputNode(this.vcOutNode);
+        this.vcInNode.setSfxPlayer(this.setting.sfxEnabled ? this.sfxPlayer : null);
         console.log("Input Setup=> success");
         await this.unlock(lockNum);
     };
@@ -245,6 +252,12 @@ export class VoiceChangerClient {
         if (this.setting.monitorGain != setting.monitorGain) {
             this.setMonitorGain(setting.monitorGain);
         }
+        if (this.setting.sfxEnabled !== setting.sfxEnabled) {
+            this.enableSfx(setting.sfxEnabled);
+        }
+        if (this.setting.sfxVolume !== setting.sfxVolume) {
+            this.setSfxVolume(setting.sfxVolume);
+        }
 
         this.setting = setting;
         if (reconstructInputRequired) {
@@ -281,6 +294,25 @@ export class VoiceChangerClient {
             return;
         }
         this.monitorGainNode.gain.value = val;
+    };
+
+    loadSfxFiles = async (files: FileList) => {
+        await this.sfxPlayer.loadFiles(files);
+    };
+
+    enableSfx = (enable: boolean) => {
+        this.setting.sfxEnabled = enable;
+        if (!enable) {
+            this.sfxPlayer.stop();
+            this.vcInNode.setSfxPlayer(null);
+        } else {
+            this.vcInNode.setSfxPlayer(this.sfxPlayer);
+        }
+    };
+
+    setSfxVolume = (vol: number) => {
+        this.setting.sfxVolume = vol;
+        this.sfxPlayer.setVolume(vol);
     };
 
     /////////////////////////////////////////////////////

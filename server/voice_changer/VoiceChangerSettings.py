@@ -324,6 +324,7 @@ class VoiceChangerSettings:
     _indexRatio: float = 0
     _protect: float = 0.5
     _silenceFront: int = 1
+    _sfx_dir: str = ""
 
     @property
     def dstId(self):
@@ -396,3 +397,11 @@ class VoiceChangerSettings:
     @silenceFront.setter
     def silenceFront(self, enable: str):
         self._silenceFront = int(enable)
+
+    @property
+    def sfx_dir(self):
+        return self._sfx_dir
+
+    @sfx_dir.setter
+    def sfx_dir(self, path: str):
+        self._sfx_dir = str(path)

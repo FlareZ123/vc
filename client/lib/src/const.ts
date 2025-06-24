@@ -355,6 +355,11 @@ export type VoiceChangerClientSetting = {
     outputGain: number;
     monitorGain: number;
 
+    /** Whether SFX playback is enabled. */
+    sfxEnabled: boolean;
+    /** SFX playback volume. 0.0 - 1.0 */
+    sfxVolume: number;
+
     passThroughConfirmationSkip: boolean;
 };
 
@@ -385,6 +390,8 @@ export const DefaultClientSettng: ClientSetting = {
         inputGain: 1.0,
         outputGain: 1.0,
         monitorGain: 1.0,
+        sfxEnabled: false,
+        sfxVolume: 1.0,
         passThroughConfirmationSkip: false,
     },
 };

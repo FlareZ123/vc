@@ -393,3 +393,8 @@ This will run the server with default settings. Note that it will not open the w
    ```
 
    This will output the resulting executable in the `dist` folder.
+
+### Sound effects
+
+The client can play looping sound effects when microphone activity is detected. Create a directory with WAV files and load it through the UI or call the `loadSfxFiles` API. Use the new `sfxEnabled` and `sfxVolume` settings to control playback.
+The server can optionally expose a directory of sound files by setting `sfx_dir` in `server/settings.py`. When provided, the GUI may preload these files.
