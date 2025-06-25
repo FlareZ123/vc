@@ -16,8 +16,32 @@ import { useMessageBuilder } from "./hooks/useMessageBuilder";
 
 library.add(fas, far, fab);
 
-const container = document.getElementById("app")!;
-const root = createRoot(container);
+/**
+ * Bootstrap the React application by mounting it onto the DOM.
+ *
+ * @param elementId - ID of the root DOM element.
+ */
+export const bootstrap = (elementId = "app"): void => {
+    const start = (): void => {
+        const container = document.getElementById(elementId);
+        if (!container) {
+            console.error(`Failed to find element with id ${elementId}`);
+            return;
+        }
+        const root = createRoot(container);
+        root.render(
+            <AppRootProvider>
+                <AppStateWrapper></AppStateWrapper>
+            </AppRootProvider>,
+        );
+    };
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", start);
+    } else {
+        start();
+    }
+};
 
 const App = () => {
     const { appGuiSettingState } = useAppRoot();
@@ -129,8 +153,4 @@ const AppStateWrapper = () => {
     }
 };
 
-root.render(
-    <AppRootProvider>
-        <AppStateWrapper></AppStateWrapper>
-    </AppRootProvider>,
-);
+bootstrap();
