@@ -2,6 +2,9 @@ const path = require("path");
 const webpack = require("webpack");
 module.exports = {
     entry: "./src/index.ts",
+    optimization: {
+        minimize: false,
+    },
     resolve: {
         extensions: [".ts", ".js"],
         fallback: {

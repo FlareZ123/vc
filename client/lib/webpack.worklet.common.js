@@ -4,6 +4,9 @@ const path = require("path");
 module.exports = {
     // mode: "development",
     mode: "production",
+    optimization: {
+        minimize: false,
+    },
     entry: path.resolve(__dirname, "worklet/src/voice-changer-worklet-processor.ts"),
     output: {
         path: path.resolve(__dirname, "worklet/dist"),
