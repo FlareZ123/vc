@@ -4,6 +4,9 @@ const common = require("./webpack_web.common.js");
 const express = require("express");
 module.exports = merge(common, {
     mode: "development",
+    optimization: {
+        minimize: false,
+    },
     devServer: {
         setupMiddlewares: (middlewares, devServer) => {
             if (!devServer) {
