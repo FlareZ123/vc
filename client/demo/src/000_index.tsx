@@ -28,7 +28,11 @@ export const bootstrap = (elementId = "app"): void => {
             console.error(`Failed to find element with id ${elementId}`);
             return;
         }
-        const root = createRoot(container);
+        // Reuse the same React root if it already exists to prevent
+        // double initialization which can lead to "U.current is null" errors
+        const existingRoot = (container as any).__reactRoot as ReturnType<typeof createRoot> | undefined;
+        const root = existingRoot ?? createRoot(container);
+        (container as any).__reactRoot = root;
         root.render(
             <AppRootProvider>
                 <AppStateWrapper></AppStateWrapper>
