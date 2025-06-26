@@ -342,6 +342,8 @@ you encounter during usage.
      source ./venv/bin/activate
      ```
 
+1. Install cmake, enable long paths: `To enable long paths in Windows, open the Local Group Policy Editor by typing gpedit.msc in the Run dialog, then navigate to Local Computer Policy > Computer Configuration > Administrative Templates > System > Filesystem, and enable the "Enable NTFS long paths" option. If you're using Windows Home edition, you may need to modify the registry instead.`
+
 1. Install the requirements using one of the following commands:
 
    * For AMD/Intel/CPU (Windows only):
@@ -353,7 +355,7 @@ you encounter during usage.
    * For Nvidia (any OS):
 
      ```
-     pip install -r requirements-common.txt -r requirements-cuda.txt
+     python -m pip install --extra-index-url https://download.pytorch.org/whl/cu126 -r requirements-common.txt -r requirements-cuda.txt
      ```
 
    * For AMD ROCm (Linux only):
