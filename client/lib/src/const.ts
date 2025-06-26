@@ -355,6 +355,15 @@ export type VoiceChangerClientSetting = {
     outputGain: number;
     monitorGain: number;
 
+    /** Volume of the background sound effect. */
+    sfxGain: number;
+
+    /** RMS threshold of microphone input to start playback. */
+    sfxStartThreshold: number;
+
+    /** Delay in ms after output becomes silent to stop playback. */
+    sfxStopDelay: number;
+
     passThroughConfirmationSkip: boolean;
 };
 
@@ -385,6 +394,9 @@ export const DefaultClientSettng: ClientSetting = {
         inputGain: 1.0,
         outputGain: 1.0,
         monitorGain: 1.0,
+        sfxGain: 0.5,
+        sfxStartThreshold: 0.02,
+        sfxStopDelay: 1300,
         passThroughConfirmationSkip: false,
     },
 };

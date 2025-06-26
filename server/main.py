@@ -2,7 +2,7 @@ import os
 import multiprocessing as mp
 # NOTE: This is required to avoid recursive process call bug for macOS
 mp.freeze_support()
-from const import SSL_KEY_DIR, ROOT_PATH, UPLOAD_DIR, TMP_DIR, LOG_FILE, get_version, get_edition
+from const import SSL_KEY_DIR, ROOT_PATH, UPLOAD_DIR, TMP_DIR, SFX_DIR, LOG_FILE, get_version, get_edition
 # NOTE: This is required to fix current working directory on macOS
 os.chdir(ROOT_PATH)
 
@@ -99,6 +99,7 @@ async def main(args):
     os.makedirs(settings.model_dir, exist_ok=True)
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     os.makedirs(TMP_DIR, exist_ok=True)
+    os.makedirs(SFX_DIR, exist_ok=True)
 
     # HTTPS key/cert作成
     if args.https and args.https_self_signed:

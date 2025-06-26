@@ -11,6 +11,7 @@ import { ServerConfigurator } from "./client/ServerConfigurator";
 //    sio/rest server ->  [vc node] -> output node
 
 import { BlockingQueue } from "./utils/BlockingQueue";
+import { SfxManager } from "./client/SfxManager";
 
 export class VoiceChangerClient {
     private configurator: ServerConfigurator;
@@ -37,6 +38,7 @@ export class VoiceChangerClient {
     private sslCertified: string[] = [];
 
     private sem = new BlockingQueue<number>();
+    private sfxManager: SfxManager;
 
     constructor(ctx: AudioContext, vfEnable: boolean, voiceChangerWorkletListener: VoiceChangerWorkletListener) {
         this.sem.enqueue(0);
@@ -68,6 +70,9 @@ export class VoiceChangerClient {
             this.outputGainNode.gain.value = this.setting.outputGain;
             this.vcOutNode.connect(this.outputGainNode); // vc node -> output node
             this.outputGainNode.connect(this.currentMediaStreamAudioDestinationNode);
+
+            this.sfxManager = new SfxManager(this.ctx, this.setting.sfxGain, this.setting.sfxStartThreshold, this.setting.sfxStopDelay);
+            this.sfxManager.connect(this.outputGainNode);
 
             this.currentMediaStreamAudioDestinationMonitorNode = this.ctx.createMediaStreamDestination(); // output node
             this.monitorGainNode = this.ctx.createGain();
@@ -126,6 +131,7 @@ export class VoiceChangerClient {
         if (!this.setting.audioInput) {
             console.log(`Input Setup=> client mic is disabled. ${this.setting.audioInput}`);
             this.vcInNode.stop();
+            this.sfxManager.stopMonitoring();
             await this.unlock(lockNum);
             return;
         }
@@ -185,6 +191,7 @@ export class VoiceChangerClient {
             this.inputGainNode.connect(this.vcInNode);
         }
         this.vcInNode.setOutputNode(this.vcOutNode);
+        this.sfxManager.startMonitoring(this.inputGainNode, this.outputGainNode);
         console.log("Input Setup=> success");
         await this.unlock(lockNum);
     };
@@ -201,6 +208,7 @@ export class VoiceChangerClient {
     };
     stop = async () => {
         await this.vcInNode.stop();
+        this.sfxManager.stopMonitoring();
         this._isVoiceChanging = false;
     };
 
@@ -244,6 +252,15 @@ export class VoiceChangerClient {
         }
         if (this.setting.monitorGain != setting.monitorGain) {
             this.setMonitorGain(setting.monitorGain);
+        }
+        if (this.setting.sfxGain != setting.sfxGain) {
+            this.sfxManager.setGain(setting.sfxGain);
+        }
+        this.sfxManager.stopMonitoring();
+        this.sfxManager = new SfxManager(this.ctx, setting.sfxGain, setting.sfxStartThreshold, setting.sfxStopDelay);
+        this.sfxManager.connect(this.outputGainNode!);
+        if (this.inputGainNode && this.outputGainNode) {
+            this.sfxManager.startMonitoring(this.inputGainNode, this.outputGainNode);
         }
 
         this.setting = setting;
@@ -320,6 +337,21 @@ export class VoiceChangerClient {
     };
     uploadAssets = (params: string) => {
         return this.configurator.uploadAssets(params);
+    };
+
+    listSfx = async () => {
+        return this.configurator.listSfx();
+    };
+
+    uploadSfx = async (file: File, onprogress: (progress: number, end: boolean) => void) => {
+        return this.configurator.uploadSfx(file, onprogress);
+    };
+
+    reloadSfxBuffers = async () => {
+        const list = await this.configurator.listSfx();
+        const base = this.configurator.getServerUrl();
+        const urls = list.files.map((f) => `${base}/sfx_static/${f}`);
+        await this.sfxManager.loadBuffers(urls);
     };
 
     //##  Worklet ##//

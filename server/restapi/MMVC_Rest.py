@@ -12,7 +12,7 @@ from restapi.MMVC_Rest_Hello import MMVC_Rest_Hello
 from restapi.MMVC_Rest_VoiceChanger import MMVC_Rest_VoiceChanger
 from restapi.MMVC_Rest_Fileuploader import MMVC_Rest_Fileuploader
 from settings import get_settings
-from const import TMP_DIR
+from const import TMP_DIR, SFX_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -57,12 +57,21 @@ class MMVC_Rest:
                 name="static",
             )
 
+            app_fastapi.mount(
+                "/sfx_static",
+                StaticFiles(directory=SFX_DIR),
+                name="sfx_static",
+            )
+
             restHello = MMVC_Rest_Hello()
             app_fastapi.include_router(restHello.router)
             restVoiceChanger = MMVC_Rest_VoiceChanger(voiceChangerManager)
             app_fastapi.include_router(restVoiceChanger.router)
             fileUploader = MMVC_Rest_Fileuploader(voiceChangerManager)
             app_fastapi.include_router(fileUploader.router)
+            from restapi.MMVC_Rest_SoundEffects import MMVC_Rest_SoundEffects
+            sfx_router = MMVC_Rest_SoundEffects()
+            app_fastapi.include_router(sfx_router.router)
 
             cls._instance = app_fastapi
             logger.info("Initialized.")

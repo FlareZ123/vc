@@ -3,8 +3,10 @@ import { ServerRestClient } from "./ServerRestClient";
 
 export class ServerConfigurator {
     private restClient;
+    private serverUrl: string;
 
     constructor(serverUrl: string) {
+        this.serverUrl = serverUrl;
         this.restClient = new ServerRestClient(serverUrl);
     }
 
@@ -22,6 +24,10 @@ export class ServerConfigurator {
 
     uploadFile2 = async (dir: string, file: File, onprogress: (progress: number, end: boolean) => void) => {
         return this.restClient.uploadFile2(dir, file, onprogress);
+    };
+
+    getServerUrl = () => {
+        return this.serverUrl;
     };
 
     uploadFile = async (buf: ArrayBuffer, filename: string, onprogress: (progress: number, end: boolean) => void) => {
@@ -58,5 +64,13 @@ export class ServerConfigurator {
 
     updateModelInfo = async (slot: number, key: string, val: string) => {
         return this.restClient.updateModelInfo(slot, key, val);
+    };
+
+    listSfx = async () => {
+        return this.restClient.listSfx();
+    };
+
+    uploadSfx = async (file: File, onprogress: (progress: number, end: boolean) => void) => {
+        return this.restClient.uploadSfx(file, onprogress);
     };
 }

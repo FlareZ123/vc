@@ -49,6 +49,10 @@ export type ClientState = {
 
     errorMessage: string;
     resetErrorMessage: () => void;
+
+    reloadSfx: () => Promise<void>;
+    uploadSfx: (file: File) => Promise<void>;
+    listSfx: () => Promise<{ files: string[] }>;
 };
 
 export type PerformanceStats = {
@@ -265,5 +269,18 @@ export const useClient = (props: UseClientProps): ClientState => {
 
         errorMessage,
         resetErrorMessage,
+
+        reloadSfx: async () => {
+            await initializedPromise;
+            return voiceChangerClient?.reloadSfxBuffers();
+        },
+        uploadSfx: async (file: File) => {
+            await initializedPromise;
+            return voiceChangerClient?.uploadSfx(file, () => {});
+        },
+        listSfx: async () => {
+            await initializedPromise;
+            return voiceChangerClient?.listSfx();
+        },
     };
 };
