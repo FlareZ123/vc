@@ -10,8 +10,12 @@ module.exports = {
     entry: "./src/000_index.tsx",
     resolve: {
         extensions: [".ts", ".tsx", ".js"],
+        alias: {
+            react: path.resolve(__dirname, "node_modules/react"),
+            "react-dom": path.resolve(__dirname, "node_modules/react-dom")
+        },
         fallback: {
-            buffer: require.resolve("buffer/"),
+            buffer: require.resolve("buffer/")
         },
     },
     module: {
