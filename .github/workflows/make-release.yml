@@ -75,6 +75,27 @@ jobs:
         # remove-large-packages: 'true'
         remove-haskell: 'true'
     - uses: actions/checkout@v4
+    - name: Setup Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: client/demo/package.json
+    - name: Build voice changer client library
+      shell: bash
+      run: |
+       cd client/lib
+       npm install
+       npm run build:prod
+       cd -
+    - name: Build client
+      shell: bash
+      run: |
+        cd client/demo
+        npm install
+        npm install --save buffer @babel/runtime
+        npm run build:prod
+        cd -
     - name: Set up Python
       uses: actions/setup-python@v5
       with:

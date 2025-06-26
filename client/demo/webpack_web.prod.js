@@ -3,4 +3,7 @@ const common = require("./webpack_web.common.js");
 
 module.exports = merge(common, {
     mode: "production",
+    optimization: {
+        minimize: false,
+    },
 });

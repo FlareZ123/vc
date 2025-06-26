@@ -4,6 +4,9 @@ const CopyPlugin = require("copy-webpack-plugin");
 const webpack = require("webpack");
 module.exports = {
     mode: "production",
+    optimization: {
+        minimize: false,
+    },
     entry: "./src/000_index.tsx",
     resolve: {
         extensions: [".ts", ".tsx", ".js"],
@@ -108,4 +111,7 @@ module.exports = {
         //     patterns: [{ from: "public/models/amitaro.png", to: "models/amitaro.png" }],
         // }),
     ],
+    optimization: {
+        minimize: false,
+    }
 };

@@ -16,8 +16,36 @@ import { useMessageBuilder } from "./hooks/useMessageBuilder";
 
 library.add(fas, far, fab);
 
-const container = document.getElementById("app")!;
-const root = createRoot(container);
+/**
+ * Bootstrap the React application by mounting it onto the DOM.
+ *
+ * @param elementId - ID of the root DOM element.
+ */
+export const bootstrap = (elementId = "app"): void => {
+    const start = (): void => {
+        const container = document.getElementById(elementId);
+        if (!container) {
+            console.error(`Failed to find element with id ${elementId}`);
+            return;
+        }
+        // Reuse the same React root if it already exists to prevent
+        // double initialization which can lead to "U.current is null" errors
+        const existingRoot = (container as any).__reactRoot as ReturnType<typeof createRoot> | undefined;
+        const root = existingRoot ?? createRoot(container);
+        (container as any).__reactRoot = root;
+        root.render(
+            <AppRootProvider>
+                <AppStateWrapper></AppStateWrapper>
+            </AppRootProvider>,
+        );
+    };
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", start);
+    } else {
+        start();
+    }
+};
 
 const App = () => {
     const { appGuiSettingState } = useAppRoot();
@@ -129,8 +157,4 @@ const AppStateWrapper = () => {
     }
 };
 
-root.render(
-    <AppRootProvider>
-        <AppStateWrapper></AppStateWrapper>
-    </AppRootProvider>,
-);
+bootstrap();

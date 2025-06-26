@@ -4,6 +4,9 @@ const common = require('./webpack.common.js')
 
 module.exports = merge(common, {
     mode: 'development',
+    optimization: {
+        minimize: false,
+    },
     devServer: {
         static: {
             directory: path.join(__dirname, "public"),
