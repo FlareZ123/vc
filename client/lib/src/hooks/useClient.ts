@@ -272,15 +272,15 @@ export const useClient = (props: UseClientProps): ClientState => {
 
         reloadSfx: async () => {
             await initializedPromise;
-            return voiceChangerClient?.reloadSfxBuffers();
+            await voiceChangerClient!.reloadSfxBuffers();
         },
         uploadSfx: async (file: File) => {
             await initializedPromise;
-            return voiceChangerClient?.uploadSfx(file, () => {});
+            await voiceChangerClient!.uploadSfx(file, () => {});
         },
         listSfx: async () => {
             await initializedPromise;
-            return voiceChangerClient?.listSfx();
+            return voiceChangerClient!.listSfx();
         },
     };
 };

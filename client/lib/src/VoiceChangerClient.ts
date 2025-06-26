@@ -38,7 +38,7 @@ export class VoiceChangerClient {
     private sslCertified: string[] = [];
 
     private sem = new BlockingQueue<number>();
-    private sfxManager: SfxManager;
+    private sfxManager!: SfxManager;
 
     constructor(ctx: AudioContext, vfEnable: boolean, voiceChangerWorkletListener: VoiceChangerWorkletListener) {
         this.sem.enqueue(0);
@@ -191,7 +191,7 @@ export class VoiceChangerClient {
             this.inputGainNode.connect(this.vcInNode);
         }
         this.vcInNode.setOutputNode(this.vcOutNode);
-        this.sfxManager.startMonitoring(this.inputGainNode, this.outputGainNode);
+        this.sfxManager.startMonitoring(this.inputGainNode!, this.outputGainNode!);
         console.log("Input Setup=> success");
         await this.unlock(lockNum);
     };
