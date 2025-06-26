@@ -1,22 +1,33 @@
 import React, { useMemo, useState } from "react";
 import { useAppState } from "../../../001_provider/001_AppStateProvider";
 
+/**
+ * UI controls for background sound effect configuration.
+ */
 export const SfxArea = () => {
-    const { setVoiceChangerClientSetting, setting, clientState } = useAppState();
+    const {
+        setVoiceChangerClientSetting,
+        setting,
+        reloadSfx,
+        uploadSfx,
+        listSfx,
+    } = useAppState();
     const [files, setFiles] = useState<string[]>([]);
 
+    /** Reload the list of available SFX and refresh buffers. */
     const reload = async () => {
-        const list = await clientState.listSfx();
+        const list = await listSfx();
         if (list) {
             setFiles(list.files);
         }
-        await clientState.reloadSfx();
+        await reloadSfx();
     };
 
+    /** Upload a new SFX wav file and refresh the list. */
     const upload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        await clientState.uploadSfx(file);
+        await uploadSfx(file);
         await reload();
     };
 

@@ -1,32 +1,62 @@
 /**
- * Manages playback of background sound effects.
+ * Manages playback of background sound effects based on real microphone and
+ * processed output levels.  When microphone input rises above a configurable
+ * threshold, a preloaded wav file is started and plays in a seamless loop.  The
+ * playback stops once the processed audio has been silent for the specified
+ * delay period.  All nodes are created from the provided {@link AudioContext} so
+ * the instance can work in either the main thread or an OfflineAudioContext for
+ * testing.
  */
 export class SfxManager {
     private readonly gainNode: GainNode;
+    /** Currently loaded audio buffers. */
     private buffers: AudioBuffer[] = [];
+    /** Source node currently playing. */
     private source: AudioBufferSourceNode | null = null;
+    /** Analyser monitoring microphone input. */
     private inputAnalyser: AnalyserNode | null = null;
+    /** Analyser monitoring processed output. */
     private outputAnalyser: AnalyserNode | null = null;
+    /** Interval timer ID for activity monitoring. */
     private monitorTimer: number | null = null;
+    /** Time in seconds when output was last above threshold. */
     private lastOutputActive = 0;
+    /** True while playback is active. */
     private active = false;
 
-    constructor(private ctx: AudioContext, gain: number, private startThreshold: number, private stopDelay: number) {
+    constructor(
+        private ctx: AudioContext,
+        gain: number,
+        /** Input/output RMS threshold to start/stop playback. */
+        private startThreshold: number,
+        /** Delay in milliseconds to wait after silence before stopping. */
+        private stopDelay: number,
+    ) {
         this.gainNode = ctx.createGain();
         this.gainNode.gain.value = gain;
     }
 
-    /** Connect SFX to destination. */
+    /**
+     * Connects the internal gain node to a destination.
+     * @param dest - destination AudioNode
+     */
     connect(dest: AudioNode): void {
         this.gainNode.connect(dest);
     }
 
-    /** Set output gain of the sound effect. */
+    /**
+     * Updates the output gain of the looped sound effect.
+     * @param val - gain value [0..1]
+     */
     setGain(val: number): void {
         this.gainNode.gain.value = val;
     }
 
-    /** Load wav files as AudioBuffers. */
+    /**
+     * Loads wav files from URLs and decodes them to {@link AudioBuffer}s.
+     * Existing buffers are replaced.  Any errors during fetch or decode will
+     * abort the entire operation.
+     */
     async loadBuffers(urls: string[]): Promise<void> {
         const bufs: AudioBuffer[] = [];
         for (const url of urls) {
@@ -39,9 +69,11 @@ export class SfxManager {
     }
 
     /**
-     * Attach monitoring nodes to detect voice activity.
-     * @param inputNode Node that contains real microphone audio.
-     * @param outputNode Node that contains processed audio.
+     * Attaches analyser nodes to monitor voice activity from the given input and
+     * output nodes.  Existing monitors and timers are cleared.
+     *
+     * @param inputNode - node carrying the microphone audio
+     * @param outputNode - node carrying the processed output audio
      */
     startMonitoring(inputNode: AudioNode, outputNode: AudioNode): void {
         this.stopMonitoring();
@@ -53,7 +85,10 @@ export class SfxManager {
         this.monitorTimer = setInterval(() => this.checkActivity(), 100) as unknown as number;
     }
 
-    /** Stop monitoring and playback. */
+    /**
+     * Stops analysing activity and any currently playing background sound.
+     * All created nodes are disconnected.
+     */
     stopMonitoring(): void {
         if (this.monitorTimer) {
             clearInterval(this.monitorTimer);
@@ -66,6 +101,9 @@ export class SfxManager {
         this.stop();
     }
 
+    /**
+     * Calculates the root mean square of the signal from an analyser node.
+     */
     private computeRms(analyser: AnalyserNode | null): number {
         if (!analyser) return 0;
         const buf = new Float32Array(analyser.fftSize);
@@ -75,6 +113,10 @@ export class SfxManager {
         return Math.sqrt(sum / buf.length);
     }
 
+    /**
+     * Internal periodic callback that checks input/output levels and decides
+     * when playback should start or stop.
+     */
     private checkActivity(): void {
         const micLevel = this.computeRms(this.inputAnalyser);
         const outLevel = this.computeRms(this.outputAnalyser);
@@ -89,7 +131,7 @@ export class SfxManager {
         }
     }
 
-    /** Start playing the selected sound effect in a loop. */
+    /** Start playing the first loaded buffer in a seamless loop. */
     start(): void {
         if (this.active || this.buffers.length === 0) return;
         const buffer = this.buffers[0];

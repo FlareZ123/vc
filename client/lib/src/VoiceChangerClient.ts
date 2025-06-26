@@ -339,14 +339,20 @@ export class VoiceChangerClient {
         return this.configurator.uploadAssets(params);
     };
 
+    /** Retrieve the list of sound-effect wav files from the server. */
     listSfx = async () => {
         return this.configurator.listSfx();
     };
 
+    /** Upload a new wav file to the server SFX directory. */
     uploadSfx = async (file: File, onprogress: (progress: number, end: boolean) => void) => {
         return this.configurator.uploadSfx(file, onprogress);
     };
 
+    /**
+     * Reloads the sound effect buffers from the server.  The current SFX
+     * directory listing is fetched and each file decoded.
+     */
     reloadSfxBuffers = async () => {
         const list = await this.configurator.listSfx();
         const base = this.configurator.getServerUrl();
