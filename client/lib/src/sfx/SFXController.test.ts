@@ -13,8 +13,19 @@ test('sfx controller start and stop logic', () => {
     ctrl.load([new DummyBuffer()]);
     ctrl.setGain(0.5);
     ctrl.setThreshold(-30);
+    // below threshold should not start playback
+    ctrl.updateInputLevel(-40);
+    expect(ctrl.playing).toBeFalsy();
+
+    // above threshold should start playback
     ctrl.updateInputLevel(-20);
     expect(ctrl.playing).toBeTruthy();
-    ctrl.updateOutputLevel(-40, 1400);
+
+    // silence shorter than limit should not stop
+    ctrl.updateOutputLevel(-40, 1000);
+    expect(ctrl.playing).toBeTruthy();
+
+    // prolonged silence stops playback
+    ctrl.updateOutputLevel(-40, 400);
     expect(ctrl.playing).toBeFalsy();
 });

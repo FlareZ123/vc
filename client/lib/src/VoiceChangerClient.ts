@@ -39,9 +39,12 @@ export class VoiceChangerClient {
 
     private sem = new BlockingQueue<number>();
 
-    private sfx: SFXController;
-    private inputAnalyser: AnalyserNode;
-    private outputAnalyser: AnalyserNode;
+    /** Controller for background SFX playback. */
+    private sfx!: SFXController;
+    /** Analyser for microphone levels. */
+    private inputAnalyser!: AnalyserNode;
+    /** Analyser for output levels. */
+    private outputAnalyser!: AnalyserNode;
     private monitorTimer: number | null = null;
 
     constructor(ctx: AudioContext, vfEnable: boolean, voiceChangerWorkletListener: VoiceChangerWorkletListener) {
@@ -72,6 +75,8 @@ export class VoiceChangerClient {
             this.currentMediaStreamAudioDestinationNode = this.ctx.createMediaStreamDestination(); // output node
             this.outputGainNode = this.ctx.createGain();
             this.outputGainNode.gain.value = this.setting.outputGain;
+            this.inputAnalyser = this.ctx.createAnalyser();
+            this.outputAnalyser = this.ctx.createAnalyser();
             this.vcOutNode.connect(this.outputGainNode); // vc node -> output node
             this.vcOutNode.connect(this.outputAnalyser);
             this.outputGainNode.connect(this.currentMediaStreamAudioDestinationNode);
@@ -214,7 +219,6 @@ export class VoiceChangerClient {
         await this.vcInNode.start();
         this._isVoiceChanging = true;
         this.monitorTimer = window.setInterval(() => {
-            const now = Date.now();
             const inputDb = this.calcDb(this.inputAnalyser);
             const outputDb = this.calcDb(this.outputAnalyser);
             this.sfx.updateInputLevel(inputDb);
