@@ -6,35 +6,39 @@
  * Type information is provided via JSDoc so the file can be executed as
  * plain JavaScript while still offering IntelliSense in editors.
  */
-class SFXController {
+export class SFXController {
+    /** Web Audio context used to create nodes. */
+    private ctx: AudioContext;
+    /** Output gain node controlling the SFX volume. */
+    private gainNode: GainNode;
+    /** Currently playing buffer source. */
+    private source: AudioBufferSourceNode | null = null;
+    /** Audio buffer used for looping playback. */
+    private buffer: AudioBuffer | null = null;
+    /** Gain applied when playback is active. */
+    private gain = 1;
+    /** Threshold in decibels that triggers playback. */
+    private thresholdDb = -40;
+    /** True if playback is currently audible. */
+    public playing = false;
+    /** Milliseconds of accumulated silence in the output. */
+    private silenceMs = 0;
+
     /**
-     * @param {AudioContext} ctx Web Audio context used to create nodes.
+     * Create a new controller.
+     * @param ctx WebAudio context that will own created nodes.
      */
-    constructor(ctx) {
-        /** @private @type {AudioContext} */
+    constructor(ctx: AudioContext) {
         this.ctx = ctx;
-        /** @private @type {GainNode} */
         this.gainNode = ctx.createGain();
         this.gainNode.gain.value = 0;
-        /** @private @type {AudioBufferSourceNode|null} */
-        this.source = null;
-        /** @private @type {AudioBuffer|null} */
-        this.buffer = null;
-        /** @private @type {number} */
-        this.gain = 1;
-        /** @private @type {number} */
-        this.thresholdDb = -40;
-        /** @public @type {boolean} */
-        this.playing = false;
-        /** @private @type {number} */
-        this.silenceMs = 0;
     }
 
     /**
      * Connect the SFX output to another node.
      * @param {AudioNode} node destination node
      */
-    connect(node) {
+    connect(node: AudioNode): void {
         this.gainNode.connect(node);
     }
 
@@ -43,14 +47,14 @@ class SFXController {
      * Only the first buffer of the array is used currently.
      * @param {AudioBuffer[]} buffers buffers with SFX data
      */
-    load(buffers) {
+    load(buffers: AudioBuffer[]): void {
         if (buffers.length === 0) return;
         this.buffer = buffers[0];
         this._createSource();
     }
 
     /** @private */
-    _createSource() {
+    private _createSource(): void {
         if (!this.buffer) return;
         if (this.source) {
             try {
@@ -73,7 +77,7 @@ class SFXController {
      * Set the gain to apply while playback is active.
      * @param {number} val gain value
      */
-    setGain(val) {
+    setGain(val: number): void {
         this.gain = val;
         if (this.playing) this.gainNode.gain.value = val;
     }
@@ -82,7 +86,7 @@ class SFXController {
      * Set the dB threshold that triggers playback.
      * @param {number} db threshold in decibels
      */
-    setThreshold(db) {
+    setThreshold(db: number): void {
         this.thresholdDb = db;
     }
 
@@ -91,7 +95,7 @@ class SFXController {
      * Playback starts once the threshold is exceeded.
      * @param {number} db input level in dB
      */
-    updateInputLevel(db) {
+    updateInputLevel(db: number): void {
         if (!this.playing && db > this.thresholdDb) {
             this.playing = true;
             this.gainNode.gain.value = this.gain;
@@ -104,7 +108,7 @@ class SFXController {
      * @param {number} db output level in dB
      * @param {number} dtMs elapsed milliseconds since last update
      */
-    updateOutputLevel(db, dtMs) {
+    updateOutputLevel(db: number, dtMs: number): void {
         if (!this.playing) return;
         if (db < this.thresholdDb) {
             this.silenceMs += dtMs;
@@ -119,4 +123,3 @@ class SFXController {
     }
 }
 
-module.exports = { SFXController };

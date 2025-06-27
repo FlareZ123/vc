@@ -1,10 +1,14 @@
 const { SFXController } = require('./SFXController');
 
 class DummyAudioContext {
-    createGain() { return { gain: { value: 1 }, connect() {} }; }
-    createBufferSource() { return { buffer: null, loop: false, connect() {}, start() {}, stop() {}, disconnect() {} }; }
+    createGain() {
+        return { gain: { value: 1 }, connect() {} } as any;
+    }
+    createBufferSource() {
+        return { buffer: null, loop: false, connect() {}, start() {}, stop() {}, disconnect() {} } as any;
+    }
 }
-class DummyBuffer { constructor(){ this.duration = 1; } }
+class DummyBuffer { duration = 1; }
 
 test('sfx controller start and stop logic', () => {
     const ctx = new DummyAudioContext();
