@@ -56,6 +56,9 @@ module.exports = {
             patterns: [{ from: "public/assets", to: "assets" }],
         }),
         new CopyPlugin({
+            patterns: [{ from: "public/sfx", to: "sfx" }],
+        }),
+        new CopyPlugin({
             patterns: [{ from: "public/favicon.ico", to: "favicon.ico" }],
         }),
 

@@ -5,6 +5,7 @@ import { VoiceFocusDeviceTransformer, VoiceFocusTransformDevice } from "amazon-c
 import { createDummyMediaStream, validateUrl } from "./util";
 import { DefaultClientSettng, MergeModelRequest, ServerSettingKey, VoiceChangerClientSetting, WorkletNodeSetting, WorkletSetting } from "./const";
 import { ServerConfigurator } from "./client/ServerConfigurator";
+import { SFXPlayer } from "./SFXPlayer";
 
 // オーディオデータの流れ
 // input node(mic or MediaStream) -> [vf node] -> [vc node] ->
@@ -28,6 +29,7 @@ export class VoiceChangerClient {
     private vcOutNode!: VoiceChangerWorkletNode;
     private currentMediaStreamAudioDestinationNode!: MediaStreamAudioDestinationNode;
     private currentMediaStreamAudioDestinationMonitorNode!: MediaStreamAudioDestinationNode;
+    public sfxPlayer: SFXPlayer | null = null;
 
     private promiseForInitialize: Promise<void>;
     private _isVoiceChanging = false;
@@ -74,6 +76,15 @@ export class VoiceChangerClient {
             this.monitorGainNode.gain.value = this.setting.monitorGain;
             this.vcOutNode.connect(this.monitorGainNode); // vc node -> monitor node
             this.monitorGainNode.connect(this.currentMediaStreamAudioDestinationMonitorNode);
+
+            this.sfxPlayer = new SFXPlayer({
+                context: this.ctx,
+                destination: this.outputGainNode,
+                directory: "sfx",
+                thresholdDb: -40,
+                gain: 1,
+            });
+            await this.sfxPlayer.reload();
 
             if (this.vfEnable) {
                 this.vf = await VoiceFocusDeviceTransformer.create({ variant: "c20" });
@@ -281,6 +292,22 @@ export class VoiceChangerClient {
             return;
         }
         this.monitorGainNode.gain.value = val;
+    };
+
+    setSfxGain = (val: number) => {
+        this.sfxPlayer?.setGain(val);
+    };
+
+    setSfxThreshold = (val: number) => {
+        this.sfxPlayer?.setThreshold(val);
+    };
+
+    reloadSfx = async () => {
+        await this.sfxPlayer?.reload();
+    };
+
+    uploadSfxFile = (file: File, onprogress: (progress: number, end: boolean) => void) => {
+        return this.configurator.uploadFile2("sfx/", file, onprogress);
     };
 
     /////////////////////////////////////////////////////
