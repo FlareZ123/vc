@@ -355,6 +355,9 @@ export type VoiceChangerClientSetting = {
     outputGain: number;
     monitorGain: number;
 
+    sfxGain: number;
+    sfxTriggerLevel: number;
+
     passThroughConfirmationSkip: boolean;
 };
 
@@ -385,6 +388,8 @@ export const DefaultClientSettng: ClientSetting = {
         inputGain: 1.0,
         outputGain: 1.0,
         monitorGain: 1.0,
+        sfxGain: 1.0,
+        sfxTriggerLevel: -40,
         passThroughConfirmationSkip: false,
     },
 };

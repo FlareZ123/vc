@@ -191,6 +191,54 @@ export const AdvancedSettingDialog = () => {
             </div>
         );
 
+        const [sfxList, setSfxList] = React.useState<string[]>([]);
+        const reloadSfx = async () => {
+            const list = await serverSetting.getSfxList();
+            setSfxList(list);
+        };
+        const uploadSfx = async () => {
+            const file = await fileSelector("");
+            if (!file) return;
+            await serverSetting.uploadSfx(file);
+            reloadSfx();
+        };
+        const sfxRow = (
+            <div className="advanced-setting-container-row">
+                <div className="advanced-setting-container-row-title-long">SFX</div>
+                <div className="advanced-setting-container-row-field">
+                    <button onClick={reloadSfx}>Reload</button>
+                    <button onClick={uploadSfx}>Upload</button>
+                    <div>
+                        <input
+                            type="range"
+                            min="-60"
+                            max="0"
+                            step="1"
+                            value={setting.voiceChangerClientSetting.sfxTriggerLevel}
+                            onChange={(e) => {
+                                setVoiceChangerClientSetting({ ...setting.voiceChangerClientSetting, sfxTriggerLevel: Number(e.target.value) });
+                            }}
+                        />
+                        <span>{setting.voiceChangerClientSetting.sfxTriggerLevel} dB</span>
+                    </div>
+                    <div>
+                        <input
+                            type="range"
+                            min="0"
+                            max="3"
+                            step="0.1"
+                            value={setting.voiceChangerClientSetting.sfxGain}
+                            onChange={(e) => {
+                                setVoiceChangerClientSetting({ ...setting.voiceChangerClientSetting, sfxGain: Number(e.target.value) });
+                            }}
+                        />
+                        <span>{setting.voiceChangerClientSetting.sfxGain}</span>
+                    </div>
+                    <div>{sfxList.join(', ')}</div>
+                </div>
+            </div>
+        );
+
         const skipPassThroughConfirmationRow = (
             <div className="advanced-setting-container-row">
                 <div className="advanced-setting-container-row-title-long">Skip Pass through confirmation</div>
@@ -216,6 +264,7 @@ export const AdvancedSettingDialog = () => {
                 {disableJitRow}
                 {convertToOnnx}
                 {protectRow}
+                {sfxRow}
                 {skipPassThroughConfirmationRow}
             </div>
         );

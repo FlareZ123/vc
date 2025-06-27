@@ -3,8 +3,10 @@ import { ServerRestClient } from "./ServerRestClient";
 
 export class ServerConfigurator {
     private restClient;
+    serverUrl: string;
 
     constructor(serverUrl: string) {
+        this.serverUrl = serverUrl;
         this.restClient = new ServerRestClient(serverUrl);
     }
 
@@ -58,5 +60,13 @@ export class ServerConfigurator {
 
     updateModelInfo = async (slot: number, key: string, val: string) => {
         return this.restClient.updateModelInfo(slot, key, val);
+    };
+
+    getSfxList = async () => {
+        return this.restClient.getSfxList();
+    };
+
+    uploadSfx = async (file: File) => {
+        await this.restClient.uploadSfx(file);
     };
 }

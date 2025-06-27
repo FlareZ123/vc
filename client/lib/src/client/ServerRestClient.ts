@@ -249,6 +249,20 @@ export class ServerRestClient {
         return info;
     };
 
+    getSfxList = async () => {
+        const url = this.serverUrl + "/sfx_list";
+        const info = await fetch(url, { method: "GET" });
+        return (await info.json()) as string[];
+    };
+
+    uploadSfx = async (file: File) => {
+        const url = this.serverUrl + "/upload_sfx";
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("filename", file.name);
+        await fetch(url, { method: "POST", body: formData });
+    };
+
     // VoiceChangerWorkletNodeから呼び出される
     //// Restで音声変換
     postVoice = async (timestamp: number, buffer: ArrayBuffer) => {

@@ -11,6 +11,7 @@ import { ServerConfigurator } from "./client/ServerConfigurator";
 //    sio/rest server ->  [vc node] -> output node
 
 import { BlockingQueue } from "./utils/BlockingQueue";
+import { SFXController } from "./sfx/SFXController";
 
 export class VoiceChangerClient {
     private configurator: ServerConfigurator;
@@ -37,6 +38,11 @@ export class VoiceChangerClient {
     private sslCertified: string[] = [];
 
     private sem = new BlockingQueue<number>();
+
+    private sfx: SFXController;
+    private inputAnalyser: AnalyserNode;
+    private outputAnalyser: AnalyserNode;
+    private monitorTimer: number | null = null;
 
     constructor(ctx: AudioContext, vfEnable: boolean, voiceChangerWorkletListener: VoiceChangerWorkletListener) {
         this.sem.enqueue(0);
@@ -67,6 +73,7 @@ export class VoiceChangerClient {
             this.outputGainNode = this.ctx.createGain();
             this.outputGainNode.gain.value = this.setting.outputGain;
             this.vcOutNode.connect(this.outputGainNode); // vc node -> output node
+            this.vcOutNode.connect(this.outputAnalyser);
             this.outputGainNode.connect(this.currentMediaStreamAudioDestinationNode);
 
             this.currentMediaStreamAudioDestinationMonitorNode = this.ctx.createMediaStreamDestination(); // output node
@@ -74,6 +81,13 @@ export class VoiceChangerClient {
             this.monitorGainNode.gain.value = this.setting.monitorGain;
             this.vcOutNode.connect(this.monitorGainNode); // vc node -> monitor node
             this.monitorGainNode.connect(this.currentMediaStreamAudioDestinationMonitorNode);
+
+            this.sfx = new SFXController(this.ctx);
+            this.inputAnalyser = this.ctx.createAnalyser();
+            this.outputAnalyser = this.ctx.createAnalyser();
+            this.sfx.setGain(this.setting.sfxGain);
+            this.sfx.setThreshold(this.setting.sfxTriggerLevel);
+            this.sfx.connect(this.outputGainNode);
 
             if (this.vfEnable) {
                 this.vf = await VoiceFocusDeviceTransformer.create({ variant: "c20" });
@@ -168,6 +182,7 @@ export class VoiceChangerClient {
         this.inputGainNode = this.ctx.createGain();
         this.inputGainNode.gain.value = this.setting.inputGain;
         this.currentMediaStreamAudioSourceNode.connect(this.inputGainNode);
+        this.inputGainNode.connect(this.inputAnalyser);
         if (this.currentDevice && this.setting.noiseSuppression2) {
             this.currentDevice.chooseNewInnerDevice(this.currentMediaStream);
             const voiceFocusNode = await this.currentDevice.createAudioNode(this.ctx); // vf node
@@ -198,15 +213,38 @@ export class VoiceChangerClient {
     start = async () => {
         await this.vcInNode.start();
         this._isVoiceChanging = true;
+        this.monitorTimer = window.setInterval(() => {
+            const now = Date.now();
+            const inputDb = this.calcDb(this.inputAnalyser);
+            const outputDb = this.calcDb(this.outputAnalyser);
+            this.sfx.updateInputLevel(inputDb);
+            this.sfx.updateOutputLevel(outputDb, 100);
+        }, 100);
     };
     stop = async () => {
         await this.vcInNode.stop();
         this._isVoiceChanging = false;
+        if (this.monitorTimer) {
+            clearInterval(this.monitorTimer);
+            this.monitorTimer = null;
+        }
     };
 
     get isVoiceChanging(): boolean {
         return this._isVoiceChanging;
     }
+
+    private calcDb = (analyser: AnalyserNode): number => {
+        const data = new Float32Array(analyser.fftSize);
+        analyser.getFloatTimeDomainData(data);
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) {
+            sum += data[i] * data[i];
+        }
+        const rms = Math.sqrt(sum / data.length);
+        if (rms === 0) return -Infinity;
+        return 20 * Math.log10(rms);
+    };
 
     ////////////////////////
     /// 設定
@@ -245,6 +283,12 @@ export class VoiceChangerClient {
         if (this.setting.monitorGain != setting.monitorGain) {
             this.setMonitorGain(setting.monitorGain);
         }
+        if (this.setting.sfxGain != setting.sfxGain) {
+            this.setSfxGain(setting.sfxGain);
+        }
+        if (this.setting.sfxTriggerLevel != setting.sfxTriggerLevel) {
+            this.setSfxThreshold(setting.sfxTriggerLevel);
+        }
 
         this.setting = setting;
         if (reconstructInputRequired) {
@@ -281,6 +325,20 @@ export class VoiceChangerClient {
             return;
         }
         this.monitorGainNode.gain.value = val;
+    };
+
+    setSfxGain = (val: number) => {
+        this.setting.sfxGain = val;
+        if (this.sfx) {
+            this.sfx.setGain(val);
+        }
+    };
+
+    setSfxThreshold = (val: number) => {
+        this.setting.sfxTriggerLevel = val;
+        if (this.sfx) {
+            this.sfx.setThreshold(val);
+        }
     };
 
     /////////////////////////////////////////////////////
@@ -354,6 +412,14 @@ export class VoiceChangerClient {
     };
     getPerformance = () => {
         return this.configurator.getPerformance();
+    };
+
+    getSfxList = () => {
+        return this.configurator.getSfxList();
+    };
+
+    uploadSfx = (file: File) => {
+        return this.configurator.uploadSfx(file);
     };
 
     getSocketId = () => {

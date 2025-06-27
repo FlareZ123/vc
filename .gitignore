@@ -75,3 +75,5 @@ start_trainer.sh
 
 # venv
 venv/
+server/sfx/*.wav
+client/demo/public/sfx/*.wav

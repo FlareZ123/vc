@@ -60,6 +60,8 @@ export type ServerSettingState = {
     updateModelDefault: () => Promise<ServerInfo>;
     updateModelInfo: (slot: number, key: string, val: string) => Promise<ServerInfo>;
     uploadAssets: (slot: number, name: ModelAssetName, file: File) => Promise<void>;
+    getSfxList: () => Promise<string[]>;
+    uploadSfx: (file: File) => Promise<void>;
 };
 
 export const useServerSetting = (props: UseServerSettingProps): ServerSettingState => {
@@ -191,6 +193,16 @@ export const useServerSetting = (props: UseServerSettingProps): ServerSettingSta
         return serverInfo;
     };
 
+    const getSfxList = async () => {
+        if (!props.voiceChangerClient) return [] as string[];
+        return props.voiceChangerClient.getSfxList();
+    };
+
+    const uploadSfx = async (file: File) => {
+        if (!props.voiceChangerClient) return;
+        await props.voiceChangerClient.uploadSfx(file);
+    };
+
     return {
         serverSetting,
         updateServerSettings,
@@ -204,5 +216,7 @@ export const useServerSetting = (props: UseServerSettingProps): ServerSettingSta
         updateModelDefault,
         updateModelInfo,
         uploadAssets,
+        getSfxList,
+        uploadSfx,
     };
 };

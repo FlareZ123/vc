@@ -7,6 +7,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
 from typing import Callable
 from voice_changer.VoiceChangerManager import VoiceChangerManager
+from const import SFX_DIR
+from restapi.MMVC_Rest_SFX import MMVC_Rest_SFX
 
 from restapi.MMVC_Rest_Hello import MMVC_Rest_Hello
 from restapi.MMVC_Rest_VoiceChanger import MMVC_Rest_VoiceChanger
@@ -56,6 +58,11 @@ class MMVC_Rest:
                 StaticFiles(directory=settings.model_dir),
                 name="static",
             )
+            app_fastapi.mount(
+                "/sfx_dir",
+                StaticFiles(directory=SFX_DIR),
+                name="static",
+            )
 
             restHello = MMVC_Rest_Hello()
             app_fastapi.include_router(restHello.router)
@@ -63,6 +70,8 @@ class MMVC_Rest:
             app_fastapi.include_router(restVoiceChanger.router)
             fileUploader = MMVC_Rest_Fileuploader(voiceChangerManager)
             app_fastapi.include_router(fileUploader.router)
+            sfxRest = MMVC_Rest_SFX()
+            app_fastapi.include_router(sfxRest.router)
 
             cls._instance = app_fastapi
             logger.info("Initialized.")
