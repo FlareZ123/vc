@@ -10,6 +10,7 @@ import { io, Socket } from "socket.io-client";
 import { DefaultEventsMap } from "@socket.io/component-emitter";
 import { ServerRestClient } from "./ServerRestClient";
 import * as msgpackrParser from "./sio/msgpackr";
+import { SFXPlayer } from "../SFXPlayer";
 
 export type VoiceChangerWorkletListener = {
   notifySendBufferingTime: (time: number) => void;
@@ -18,6 +19,8 @@ export type VoiceChangerWorkletListener = {
     code: VOICE_CHANGER_CLIENT_EXCEPTION,
     message: string
   ) => void;
+  notifyInputDb?: (db: number) => void;
+  notifyOutputDb?: (db: number) => void;
 };
 
 export class VoiceChangerWorkletNode extends AudioWorkletNode {
@@ -177,6 +180,8 @@ export class VoiceChangerWorkletNode extends AudioWorkletNode {
       voice: f32Data,
     };
     this.port.postMessage(req, [f32Data.buffer]);
+    const db = SFXPlayer.computeDb(f32Data);
+    this.listener.notifyOutputDb?.(db);
   };
 
   handleMessage(event: any) {
@@ -194,6 +199,9 @@ export class VoiceChangerWorkletNode extends AudioWorkletNode {
     } else if (event.data.responseType === "inputData") {
       const inputData = event.data.inputData as Float32Array;
       // console.log("receive input data", inputData);
+
+      const db = SFXPlayer.computeDb(inputData);
+      this.listener.notifyInputDb?.(db);
 
       // Float to Int16 (internalの場合はfloatのまま行く。)
       const offset = inputData.length * this.chunkCounter;

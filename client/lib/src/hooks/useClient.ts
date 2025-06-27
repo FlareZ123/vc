@@ -26,6 +26,11 @@ export type ClientState = {
     stopOutputRecording: () => Promise<Float32Array>;
     trancateBuffer: () => Promise<void>;
 
+    setSfxGain: (val: number) => void;
+    setSfxThreshold: (val: number) => void;
+    reloadSfx: () => Promise<void>;
+    uploadSfxFile: (file: File, onprogress: (progress: number, end: boolean) => void) => Promise<unknown>;
+
     setWorkletSetting: (_workletSetting: WorkletSetting) => void;
     // workletSetting: WorkletSetting
     // workletSetting: WorkletSettingState
@@ -153,6 +158,12 @@ export const useClient = (props: UseClientProps): ClientState => {
                     // const serverError = `Error code: ${code}\n\n${mes}`
                     // console.error(serverError);
                     setErrorMessage(mes);
+                },
+                notifyInputDb: (db: number) => {
+                    voiceChangerClient.sfxPlayer?.notifyInputLevel(db);
+                },
+                notifyOutputDb: (db: number) => {
+                    voiceChangerClient.sfxPlayer?.notifyOutputLevel(db);
                 }
             });
 
@@ -243,6 +254,13 @@ export const useClient = (props: UseClientProps): ClientState => {
         startOutputRecording: workletNodeSetting.startOutputRecording,
         stopOutputRecording: workletNodeSetting.stopOutputRecording,
         trancateBuffer: workletNodeSetting.trancateBuffer,
+
+        setSfxGain: (val: number) => { voiceChangerClientRef.current?.setSfxGain(val); },
+        setSfxThreshold: (val: number) => { voiceChangerClientRef.current?.setSfxThreshold(val); },
+        reloadSfx: async () => { await voiceChangerClientRef.current?.reloadSfx(); },
+        uploadSfxFile: async (file: File, onp: (p: number, e: boolean) => void) => {
+            return voiceChangerClientRef.current?.uploadSfxFile(file, onp);
+        },
 
         setWorkletSetting,
         // workletSetting: workletSettingIF.setting,
